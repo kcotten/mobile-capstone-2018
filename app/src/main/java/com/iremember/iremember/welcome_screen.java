@@ -7,25 +7,56 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.quickstart;
+import android.app.ProgressDialog;
 
 public class welcome_screen extends AppCompatActivity {
     private static final String TAG = "Hahaha";
+
+    private FirebaseAuth mAuth;
+
+    private void updateUI(FirebaseUser user) {
+        hideProgressDialog();
+        if (user != null) {
+            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
+            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+
+            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
+        } else {
+            mStatusTextView.setText(R.string.signed_out);
+            mDetailTextView.setText(null);
+
+            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome_screen);
 
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
         Button Login = (Button) findViewById(R.id.button);
         Login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG,"This is iRemember!");
                 Toast.makeText(getApplicationContext(),"Check!", Toast.LENGTH_SHORT)
                         .show();
+                Log.i(TAG,"Login");
             }
 
         });
+
+        Log.i(TAG, "onCreate");
     }
 
     /*
@@ -57,6 +88,11 @@ public class welcome_screen extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+
         Log.i(TAG, "onStart");
     }
 
@@ -114,4 +150,3 @@ public class welcome_screen extends AppCompatActivity {
         password.setText(userPassword);
     }
 }
-

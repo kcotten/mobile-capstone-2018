@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">iremember</string>
+    <string name="login_text">Login</string>
+    <string name="welcome_string">Welcome</string>
+    <string name="email_hint_string">example@ucsc.edu</string>
+    <string name="password_string">password</string>
 </resources>

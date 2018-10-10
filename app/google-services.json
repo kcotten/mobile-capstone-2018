@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "88301796994",
+    "firebase_url": "https://iremember-ucsc.firebaseio.com",
+    "project_id": "iremember-ucsc",
+    "storage_bucket": "iremember-ucsc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88301796994:android:d336bd6f1f945ab7",
+        "android_client_info": {
+          "package_name": "com.iremember.iremember"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "88301796994-vtmgem8ohq0tpdbna4j5jlrqhkifjuuc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIdV3Fm0c4qVSUv9G7RV9tOxVtzicJcdQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
