@@ -6,4 +6,7 @@
     <string name="user_string">User</string>
     <string name="welcome_text">Welcome!</string>
     <string name="logout_text">Logout</string>
+    <string name="record_location">Record Location</string>
+    <string name="map">Map</string>
+    <string name="tracked_item_list">Tracked Item List</string>
 </resources>

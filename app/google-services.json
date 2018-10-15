@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "88301796994-7q46a74fgviaaaajkpg9bv5a0illedbt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.iremember.iremember",
+            "certificate_hash": "c3d4c8648bcca6859a959342e55d813497516f4b"
+          }
+        },
+        {
           "client_id": "88301796994-vtmgem8ohq0tpdbna4j5jlrqhkifjuuc.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,8 +37,57 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "88301796994-vtmgem8ohq0tpdbna4j5jlrqhkifjuuc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88301796994:android:bc8730811fc23542",
+        "android_client_info": {
+          "package_name": "ucsc.iremember.i_remember"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "88301796994-q7f7kia45km2acdbhbh34humbpmr96vq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ucsc.iremember.i_remember",
+            "certificate_hash": "883219bd0f21cc5790468e866064909a4d3f1827"
+          }
+        },
+        {
+          "client_id": "88301796994-vtmgem8ohq0tpdbna4j5jlrqhkifjuuc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIdV3Fm0c4qVSUv9G7RV9tOxVtzicJcdQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "88301796994-vtmgem8ohq0tpdbna4j5jlrqhkifjuuc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,12 +14,8 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
-import android.app.ProgressDialog;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,8 +28,11 @@ class Welcome_screen extends AppCompatActivity {
     private FirebaseAuth Auth;
     TextView email;
     TextView userName;
-    Button button1;
-    Button button2;
+    Button login_button;
+    Button logout_button;
+    Button record_location;
+    Button map;
+    Button tracked_items_list;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
@@ -49,8 +47,11 @@ class Welcome_screen extends AppCompatActivity {
         }
 
         Auth     = FirebaseAuth.getInstance();
-        button1  = findViewById(R.id.button1);
-        button2  = findViewById(R.id.button2);
+        login_button = findViewById(R.id.button1);
+        logout_button = findViewById(R.id.button2);
+        record_location = findViewById(R.id.button3);
+        map = findViewById(R.id.button4);
+        tracked_items_list = findViewById(R.id.button5);
         email    = findViewById(R.id.email);
         userName = findViewById(R.id.user);
 
@@ -66,18 +67,16 @@ class Welcome_screen extends AppCompatActivity {
     private void updateUI() {
         FirebaseUser user = Auth.getCurrentUser();
         if(user == null) {
-            button1.setVisibility(View.VISIBLE);
-            button2.setVisibility(View.GONE);
+            login_button.setVisibility(View.VISIBLE);
+            logout_button.setVisibility(View.GONE);
             email.setVisibility(View.GONE);
-            // change password to user?
             userName.setVisibility(View.GONE);
 
         } else {
-            button1.setVisibility(View.GONE);
-            button2.setVisibility(View.VISIBLE);
+            login_button.setVisibility(View.GONE);
+            logout_button.setVisibility(View.VISIBLE);
             email.setVisibility(View.VISIBLE);
-            // change password to user?
-            userName.setVisibility(View.VISIBLE);
+            userName.setVisibility(View.GONE);
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
