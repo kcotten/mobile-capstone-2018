@@ -3,5 +3,7 @@
     <string name="login_text">Login</string>
     <string name="welcome_string">Welcome</string>
     <string name="email_hint_string">example@ucsc.edu</string>
-    <string name="password_string">password</string>
+    <string name="user_string">User</string>
+    <string name="welcome_text">Welcome!</string>
+    <string name="logout_text">Logout</string>
 </resources>
