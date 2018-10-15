@@ -71,12 +71,17 @@ class Welcome_screen extends AppCompatActivity {
             logout_button.setVisibility(View.GONE);
             email.setVisibility(View.GONE);
             userName.setVisibility(View.GONE);
-
+            record_location.setVisibility(View.GONE);
+            map.setVisibility(View.GONE);
+            tracked_items_list.setVisibility(View.GONE);
         } else {
             login_button.setVisibility(View.GONE);
             logout_button.setVisibility(View.VISIBLE);
             email.setVisibility(View.VISIBLE);
             userName.setVisibility(View.GONE);
+            record_location.setVisibility(View.VISIBLE);
+            map.setVisibility(View.VISIBLE);
+            tracked_items_list.setVisibility(View.VISIBLE);
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
