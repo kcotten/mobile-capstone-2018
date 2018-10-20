@@ -20,7 +20,7 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.Arrays;
 import java.util.List;
 
-class Welcome_screen extends AppCompatActivity {
+public class Welcome_screen extends AppCompatActivity {
 
     private static final String TAG = "Welcome_screen";
     private static int RC_SIGN_IN = 100;
