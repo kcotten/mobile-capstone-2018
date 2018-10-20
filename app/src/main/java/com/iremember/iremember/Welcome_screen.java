@@ -91,8 +91,34 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
         db = FirebaseDatabase.getInstance();
         dbRef = db.getReference("/data");
-        dbRef.addValueEventListener(changeListener);
+        // dbRef.setValue("Hello");
+        // dbRef.addValueEventListener(changeListener);
+
+
         Log.i(TAG, "onCreate");
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.button3:
+                Log.i("button", "3, map");
+                //Intent intent = new Intent(this, Map_screen.class);
+                //startActivity(intent);
+                break;
+            case R.id.button4:
+                Log.i("button", "4, tracked_item_list");
+                //Intent i = new Intent(this, List_screen.class);
+                //startActivity(i);
+                break;
+            case R.id.button5:
+                Log.i("button", "5, record_location");
+
+                break;
+            default:
+                Log.i("button","unknown input");
+                break;
+        }
     }
 
     private void updateUI() {
@@ -164,34 +190,13 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 .signOut(this)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(Welcome_screen.this, "signed out succesfully ... ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(Welcome_screen.this, "Signed Out successfully ... ",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.button3:
-                Log.i("button", "3, map");
-                //Intent intent = new Intent(this, Map_screen.class);
-                //startActivity(intent);
-                break;
-            case R.id.button4:
-                Log.i("button", "4, tracked_item_list");
-                //Intent i = new Intent(this, List_screen.class);
-                //startActivity(i);
-                break;
-            case R.id.button5:
-                Log.i("button", "5, record_location");
-
-                break;
-            default:
-                Log.i("button","unknown input");
-                break;
-        }
-    }
-
+    /*
     ValueEventListener changeListener = new ValueEventListener() {
 
         @Override
@@ -231,6 +236,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                     }
                 }
             };
+    */
 
     @Override
     protected void onStart() {
