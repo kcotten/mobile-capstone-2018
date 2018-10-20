@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,16 +17,33 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class Welcome_screen extends AppCompatActivity {
+public class Welcome_screen extends AppCompatActivity implements View.OnClickListener {
 
+    // constants
     private static final String TAG = "Welcome_screen";
     private static int RC_SIGN_IN = 100;
+    private static FirebaseUser currentUser;
+    private static final String TAG1 = "RealtimeDB";
+
+
+    // firebase auth
     private FirebaseAuth.AuthStateListener AuthListener;
     private FirebaseAuth Auth;
+
+    // firebase database
+    FirebaseDatabase db;
+    private DatabaseReference dbRef;
+
+    // UI elements
     TextView email;
     TextView userName;
     Button login_button;
@@ -33,7 +51,9 @@ public class Welcome_screen extends AppCompatActivity {
     Button record_location;
     Button map;
     Button tracked_items_list;
+    private EditText userText;
 
+    // add support for logins here
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
 
@@ -46,21 +66,32 @@ public class Welcome_screen extends AppCompatActivity {
             Log.i(this.getClass().getName(), provider);
         }
 
-        Auth     = FirebaseAuth.getInstance();
         login_button = findViewById(R.id.button1);
         logout_button = findViewById(R.id.button2);
         record_location = findViewById(R.id.button3);
         map = findViewById(R.id.button4);
         tracked_items_list = findViewById(R.id.button5);
-        email    = findViewById(R.id.email);
+        email = findViewById(R.id.email);
         userName = findViewById(R.id.user);
+        userText = findViewById(R.id.userText);
 
+        map.setOnClickListener(this);
+        tracked_items_list.setOnClickListener(this);
+        record_location.setOnClickListener(this);
+
+        Auth = FirebaseAuth.getInstance();
         AuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 updateUI();
             }
         };
+
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        db = FirebaseDatabase.getInstance();
+        dbRef = db.getReference("/data");
+        dbRef.addValueEventListener(changeListener);
         Log.i(TAG, "onCreate");
     }
 
@@ -74,6 +105,7 @@ public class Welcome_screen extends AppCompatActivity {
             record_location.setVisibility(View.GONE);
             map.setVisibility(View.GONE);
             tracked_items_list.setVisibility(View.GONE);
+            userText.setVisibility(View.GONE);
         } else {
             login_button.setVisibility(View.GONE);
             logout_button.setVisibility(View.VISIBLE);
@@ -82,6 +114,7 @@ public class Welcome_screen extends AppCompatActivity {
             record_location.setVisibility(View.VISIBLE);
             map.setVisibility(View.VISIBLE);
             tracked_items_list.setVisibility(View.VISIBLE);
+            userText.setVisibility(View.VISIBLE);
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
@@ -135,6 +168,69 @@ public class Welcome_screen extends AppCompatActivity {
                     }
                 });
     }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.button3:
+                Log.i("button", "3, map");
+                //Intent intent = new Intent(this, Map_screen.class);
+                //startActivity(intent);
+                break;
+            case R.id.button4:
+                Log.i("button", "4, tracked_item_list");
+                //Intent i = new Intent(this, List_screen.class);
+                //startActivity(i);
+                break;
+            case R.id.button5:
+                Log.i("button", "5, record_location");
+
+                break;
+            default:
+                Log.i("button","unknown input");
+                break;
+        }
+    }
+
+    ValueEventListener changeListener = new ValueEventListener() {
+
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+
+            String change = dataSnapshot.child(
+                    currentUser.getUid()).child("message")
+                    .getValue(String.class);
+
+            userText.setText(change);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            notifyUser("Database error: " + databaseError.toException());
+        }
+    };
+
+    private void notifyUser(String message) {
+        Toast.makeText(this, message,
+                Toast.LENGTH_SHORT).show();
+    }
+
+    public void saveData(View view) {
+        dbRef.child(currentUser.getUid()).child("message")
+                .setValue("Test String", completionListener);
+    }
+
+    DatabaseReference.CompletionListener completionListener =
+            new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError,
+                                       DatabaseReference databaseReference) {
+
+                    if (databaseError != null) {
+                        notifyUser(databaseError.getMessage());
+                    }
+                }
+            };
 
     @Override
     protected void onStart() {

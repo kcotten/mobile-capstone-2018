@@ -9,4 +9,5 @@
     <string name="record_location">Record Location</string>
     <string name="map">Map</string>
     <string name="tracked_item_list">Tracked Item List</string>
+    <string name="update">update</string>
 </resources>
