@@ -102,18 +102,18 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button3:
+                Log.i("button", "5, record_location");
+
+                break;
+            case R.id.button4:
                 Log.i("button", "3, map");
                 //Intent intent = new Intent(this, Map_screen.class);
                 //startActivity(intent);
                 break;
-            case R.id.button4:
-                Log.i("button", "4, tracked_item_list");
-                //Intent i = new Intent(this, List_screen.class);
-                //startActivity(i);
-                break;
             case R.id.button5:
-                Log.i("button", "5, record_location");
-
+                Log.i("button", "4, tracked_item_list");
+                Intent i = new Intent(this, List_screen.class);
+                startActivity(i);
                 break;
             default:
                 Log.i("button","unknown input");
