@@ -24,7 +24,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Welcome_screen extends AppCompatActivity implements View.OnClickListener {
 
@@ -91,9 +93,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
         db = FirebaseDatabase.getInstance();
         dbRef = db.getReference("/data");
-        // dbRef.setValue("Hello");
-        // dbRef.addValueEventListener(changeListener);
-
+        dbRef.addValueEventListener(changeListener);
 
         Log.i(TAG, "onCreate");
     }
@@ -190,15 +190,13 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 .signOut(this)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(Welcome_screen.this, "Signed Out successfully ... ",
+                        Toast.makeText(Welcome_screen.this, "Signed Out successfully...",
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    /*
     ValueEventListener changeListener = new ValueEventListener() {
-
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -208,7 +206,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
             userText.setText(change);
         }
-
         @Override
         public void onCancelled(DatabaseError databaseError) {
             notifyUser("Database error: " + databaseError.toException());
@@ -222,7 +219,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     public void saveData(View view) {
         dbRef.child(currentUser.getUid()).child("message")
-                .setValue("Test String", completionListener);
+                .setValue(userText.getText().toString(), completionListener);
     }
 
     DatabaseReference.CompletionListener completionListener =
@@ -236,7 +233,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                     }
                 }
             };
-    */
 
     @Override
     protected void onStart() {
