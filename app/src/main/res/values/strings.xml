@@ -14,4 +14,5 @@
     <string name="find">Find</string>
     <string name="delete">Delete</string>
     <string name="name">Name</string>
+    <string name="editTextHint">Remember</string>
 </resources>

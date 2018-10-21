@@ -53,7 +53,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     Button record_location;
     Button map;
     Button tracked_items_list;
-    private EditText userText;
+    // private EditText userText;
 
     // add support for logins here
     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -75,7 +75,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         tracked_items_list = findViewById(R.id.button5);
         email = findViewById(R.id.email);
         userName = findViewById(R.id.user);
-        userText = findViewById(R.id.userText);
+        // userText = findViewById(R.id.userText);
 
         map.setOnClickListener(this);
         tracked_items_list.setOnClickListener(this);
@@ -91,9 +91,9 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        db = FirebaseDatabase.getInstance();
-        dbRef = db.getReference("/data");
-        dbRef.addValueEventListener(changeListener);
+        //db = FirebaseDatabase.getInstance();
+        //dbRef = db.getReference("/data");
+        //dbRef.addValueEventListener(changeListener);
 
         Log.i(TAG, "onCreate");
     }
@@ -131,7 +131,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             record_location.setVisibility(View.GONE);
             map.setVisibility(View.GONE);
             tracked_items_list.setVisibility(View.GONE);
-            userText.setVisibility(View.GONE);
+            //userText.setVisibility(View.GONE);
         } else {
             login_button.setVisibility(View.GONE);
             logout_button.setVisibility(View.VISIBLE);
@@ -140,7 +140,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             record_location.setVisibility(View.VISIBLE);
             map.setVisibility(View.VISIBLE);
             tracked_items_list.setVisibility(View.VISIBLE);
-            userText.setVisibility(View.VISIBLE);
+            //userText.setVisibility(View.VISIBLE);
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
@@ -196,6 +196,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 });
     }
 
+    /*
     ValueEventListener changeListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -211,16 +212,19 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             notifyUser("Database error: " + databaseError.toException());
         }
     };
+    */
 
     private void notifyUser(String message) {
         Toast.makeText(this, message,
                 Toast.LENGTH_SHORT).show();
     }
 
+    /*
     public void saveData(View view) {
         dbRef.child(currentUser.getUid()).child("message")
                 .setValue(userText.getText().toString(), completionListener);
     }
+    */
 
     DatabaseReference.CompletionListener completionListener =
             new DatabaseReference.CompletionListener() {

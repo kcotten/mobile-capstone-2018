@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,11 +32,12 @@ public class List_screen extends AppCompatActivity {
     private Boolean itemSelected = false;
 
     private int selectedPosition = 0;
-    private FirebaseDatabase database = FirebaseDatabase.getInstance();
-    private DatabaseReference dbRef = database.getReference("todo");
 
-    ArrayList<String> listItems = new ArrayList<String>();
-    ArrayList<String> listKeys = new ArrayList<String>();
+    private FirebaseDatabase db= FirebaseDatabase.getInstance();
+    private DatabaseReference dbRef = db.getReference("todo");
+
+    ArrayList<String> listItems = new ArrayList<>();
+    ArrayList<String> listKeys = new ArrayList<>();
     ArrayAdapter<String> adapter;
 
     @Override
@@ -42,13 +45,13 @@ public class List_screen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_screen);
 
-        dataListView = (ListView) findViewById(R.id.dataListView);
-        itemText = (EditText) findViewById(R.id.itemText);
-        findButton = (Button) findViewById(R.id.findBtn);
-        deleteButton = (Button) findViewById(R.id.deleteBtn);
+        dataListView = findViewById(R.id.dataListView);
+        itemText = findViewById(R.id.itemText);
+        findButton = findViewById(R.id.findBtn);
+        deleteButton = findViewById(R.id.deleteBtn);
         deleteButton.setEnabled(false);
 
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_single_choice, listItems);
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_single_choice, listItems);
         dataListView.setAdapter(adapter);
         dataListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         dataListView.setOnItemClickListener( new AdapterView.OnItemClickListener() {
@@ -89,7 +92,7 @@ public class List_screen extends AppCompatActivity {
             adapter.clear();
             listKeys.clear();
             while (iterator.hasNext()) {
-                DataSnapshot next = (DataSnapshot) iterator.next();
+                DataSnapshot next = iterator.next();
                 String match = (String) next.child("description").getValue();
                 String key = next.getKey();
                 listKeys.add(key);
@@ -102,11 +105,14 @@ public class List_screen extends AppCompatActivity {
         }
     };
 
+    // dataSnapshot.child(currentUser.getUid())
+
     public void addItem(View view) {
         String item = itemText.getText().toString();
         String key = dbRef.push().getKey();
         itemText.setText("");
-        dbRef.child(key).child("description").setValue(item); adapter.notifyDataSetChanged();
+        dbRef.child(key).child("description").setValue(item);
+        adapter.notifyDataSetChanged();
     }
 
     public void deleteItem(View view) {

@@ -79,7 +79,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="110dp"
         android:autofillHints=""
-        android:hint="@string/name"
+        android:hint="@string/editTextHint"
         android:inputType="text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
