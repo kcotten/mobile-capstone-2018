@@ -32,6 +32,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     // constants
     private static final String TAG = "Welcome_screen";
     private static int RC_SIGN_IN = 100;
+
     private static FirebaseUser currentUser;
     private static final String TAG1 = "RealtimeDB";
 
@@ -111,8 +112,8 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 break;
             case R.id.button4:
                 Log.i("button", "3, map");
-                //Intent intent = new Intent(this, Map_screen.class);
-                //startActivity(intent);
+                Intent intent = new Intent(this, Map_screen.class);
+                startActivity(intent);
                 break;
             case R.id.button5:
                 Log.i("button", "4, tracked_item_list");
