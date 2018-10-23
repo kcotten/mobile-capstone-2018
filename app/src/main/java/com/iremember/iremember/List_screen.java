@@ -2,6 +2,7 @@ package com.iremember.iremember;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 
 public class List_screen extends AppCompatActivity {
 
+    private static final String TAG = "List_screen";
     private ListView dataListView;
     private EditText itemText;
     private Button findButton;
@@ -33,8 +35,13 @@ public class List_screen extends AppCompatActivity {
 
     private int selectedPosition = 0;
 
+    //path dbRef.child("users").child(uid)
+
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    String path = "users/" + currentUser.getUid() + "/items";
+
     private FirebaseDatabase db= FirebaseDatabase.getInstance();
-    private DatabaseReference dbRef = db.getReference("todo");
+    private DatabaseReference dbRef = db.getReference(path);
 
     ArrayList<String> listItems = new ArrayList<>();
     ArrayList<String> listKeys = new ArrayList<>();
@@ -44,6 +51,8 @@ public class List_screen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_screen);
+
+        Log.i(TAG, path);
 
         dataListView = findViewById(R.id.dataListView);
         itemText = findViewById(R.id.itemText);

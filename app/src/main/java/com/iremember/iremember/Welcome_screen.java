@@ -1,6 +1,7 @@
 package com.iremember.iremember;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,9 +22,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +48,10 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     // firebase database
     FirebaseDatabase db;
     private DatabaseReference dbRef;
+    String name;
+    String firebase_email;
+    Uri photoUrl;
+    String uid;
 
     // UI elements
     TextView email;
@@ -89,10 +97,11 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             }
         };
 
-        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+
 
         //db = FirebaseDatabase.getInstance();
-        //dbRef = db.getReference("/data");
+        //dbRef = db.getReference();
         //dbRef.addValueEventListener(changeListener);
 
         Log.i(TAG, "onCreate");
@@ -157,6 +166,23 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == RESULT_OK) {
                 Log.i(TAG,"User signed in with " + response.getProviderType());
+
+                currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    // Name, email address, and profile photo Url
+                    name = currentUser.getDisplayName();
+                    firebase_email = currentUser.getEmail();
+                    // photoUrl = currentUser.getPhotoUrl();
+                    // Check if user's email is verified
+                    // boolean emailVerified = currentUser.isEmailVerified();
+                    // The user's ID, unique to the Firebase project. Do NOT use this value to
+                    // authenticate with your backend server, if you have one. Use
+                    // FirebaseUser.getIdToken() instead.
+                    uid = currentUser.getUid();
+                }
+
+                writeUserData(name, firebase_email, uid);
+
                 updateUI();
             } else {
                 updateUI();
@@ -195,6 +221,12 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                     }
                 });
     }
+
+    /*
+    public void checkEmail(View v) {
+        Auth.fetchProvidersForEmail()
+    }
+    */
 
     /*
     ValueEventListener changeListener = new ValueEventListener() {
@@ -286,5 +318,35 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         Log.i(TAG, "onRestoreInstanceState");
+    }
+
+    public void writeUserData(String name, String firebase_email, String uid) {
+        db = FirebaseDatabase.getInstance();
+        dbRef = db.getReference();
+        User user = new User(name, firebase_email);
+
+        dbRef.child("users").child(uid).setValue(user);
+    }
+
+
+    @IgnoreExtraProperties
+    public class User {
+
+        public String username;
+        public String email;
+
+        //public String items;
+        // public List<> locations;
+
+        public User() {
+            // Default constructor required for calls to DataSnapshot.getValue(User.class)
+        }
+
+        public User(String username, String email) {
+            this.username = username;
+            this.email = email;
+            //this.items = "Remembered Items";
+        }
+
     }
 }
