@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,12 +24,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.IgnoreExtraProperties;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Welcome_screen extends AppCompatActivity implements View.OnClickListener {
 
@@ -181,7 +176,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                     uid = currentUser.getUid();
                 }
 
-                writeUserData(name, firebase_email, uid);
+                writeUserData(name, firebase_email);
 
                 updateUI();
             } else {
@@ -320,13 +315,32 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         Log.i(TAG, "onRestoreInstanceState");
     }
 
-    public void writeUserData(String name, String firebase_email, String uid) {
+    public void writeUserData(String name, String firebase_email) {
         db = FirebaseDatabase.getInstance();
         dbRef = db.getReference();
-        User user = new User(name, firebase_email);
+        final User user = new User(name, firebase_email);
 
-        dbRef.child("users").child(uid).setValue(user);
+        dbRef.child("users").child(uid).addListenerForSingleValueEvent(
+            new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        // User Exists
+                        // Do your stuff here if user already exits
+                    } else {
+                        dbRef.child("users").child(uid).setValue(user);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, "getUser:onCancelled", databaseError.toException());
+                }
+            }
+        );
+
     }
+
 
 
     @IgnoreExtraProperties
