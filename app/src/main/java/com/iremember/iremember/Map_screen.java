@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -24,14 +26,48 @@ public class Map_screen extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_screen);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+    }
+
+
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        UiSettings mapSettings;
+        mapSettings = mMap.getUiSettings();
+
+        if (mMap != null) {
+            int permission = ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION);
+
+            if (permission == PackageManager.PERMISSION_GRANTED) {
+                mMap.setMyLocationEnabled(true);
+            } else {
+                requestPermission(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        LOCATION_REQUEST_CODE);
+            }
+        }
+
+        mapSettings.setZoomControlsEnabled(true);
+        mapSettings.setCompassEnabled(true);
+
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        LatLng UCSC = new LatLng(36.9916, -122.0583);
+        Marker ucsc = mMap.addMarker(new MarkerOptions()
+                .position(UCSC)
+                .title("UCSC")
+                .snippet("University of California Santa Cruz"));
+        // mMap.moveCamera(CameraUpdateFactory.newLatLng(UCSC));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UCSC,13));
     }
 
     protected void requestPermission(String permissionType,
@@ -64,29 +100,5 @@ public class Map_screen extends FragmentActivity implements OnMapReadyCallback {
                 }
             }
         }
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        if (mMap != null) {
-            int permission = ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION);
-
-            if (permission == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-            } else {
-                requestPermission(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        LOCATION_REQUEST_CODE);
-            }
-        }
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        LatLng UCSC = new LatLng(36.9916, -122.0583);
-        Marker ucsc = mMap.addMarker(new MarkerOptions()
-                .position(UCSC)
-                .title("UCSC")
-                .snippet("University of California Santa Cruz"));
     }
 }
