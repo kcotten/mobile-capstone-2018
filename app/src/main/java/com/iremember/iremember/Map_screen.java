@@ -43,6 +43,9 @@ public class Map_screen extends FragmentActivity implements
     private GoogleMap mMap;
     private Location mLastKnownLocation;
     private boolean mLocationPermissionGranted;
+    private final LatLng mDefaultLocation = new LatLng(36.9916, -122.0583);
+    private boolean zoomed = false;
+    private boolean firstPass = true;
 
     FusedLocationProviderClient mFusedLocationProviderClient;
     GeoDataClient mGeoDataClient;
@@ -55,10 +58,10 @@ public class Map_screen extends FragmentActivity implements
         setContentView(R.layout.activity_map_screen);
 
         // Construct a GeoDataClient.
-        mGeoDataClient = Places.getGeoDataClient(this, null);
+        mGeoDataClient = Places.getGeoDataClient(this);
 
         // Construct a PlaceDetectionClient.
-        mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
+        mPlaceDetectionClient = Places.getPlaceDetectionClient(this;);
 
         // Construct a FusedLocationProviderClient.
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
