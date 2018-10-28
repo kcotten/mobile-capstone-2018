@@ -36,8 +36,6 @@ public class List_screen extends AppCompatActivity {
 
     private int selectedPosition = 0;
 
-    //path dbRef.child("users").child(uid)
-
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     String path = "users/" + currentUser.getUid() + "/items";
 

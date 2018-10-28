@@ -46,7 +46,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     private DatabaseReference dbRef;
     String name;
     String firebase_email;
-    Uri photoUrl;
     String uid;
 
     // UI elements
@@ -57,7 +56,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     Button record_location;
     Button map;
     Button tracked_items_list;
-    // private EditText userText;
 
     // add support for logins here
     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -79,7 +77,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         tracked_items_list = findViewById(R.id.button5);
         email = findViewById(R.id.email);
         userName = findViewById(R.id.user);
-        // userText = findViewById(R.id.userText);
 
         map.setOnClickListener(this);
         tracked_items_list.setOnClickListener(this);
@@ -92,13 +89,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 updateUI();
             }
         };
-
-
-
-
-        //db = FirebaseDatabase.getInstance();
-        //dbRef = db.getReference();
-        //dbRef.addValueEventListener(changeListener);
 
         Log.i(TAG, "onCreate");
     }
@@ -136,7 +126,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             record_location.setVisibility(View.GONE);
             map.setVisibility(View.GONE);
             tracked_items_list.setVisibility(View.GONE);
-            //userText.setVisibility(View.GONE);
         } else {
             login_button.setVisibility(View.GONE);
             logout_button.setVisibility(View.VISIBLE);
@@ -145,7 +134,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             record_location.setVisibility(View.VISIBLE);
             map.setVisibility(View.VISIBLE);
             tracked_items_list.setVisibility(View.VISIBLE);
-            //userText.setVisibility(View.VISIBLE);
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
@@ -165,15 +153,8 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
                 currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 if (currentUser != null) {
-                    // Name, email address, and profile photo Url
                     name = currentUser.getDisplayName();
                     firebase_email = currentUser.getEmail();
-                    // photoUrl = currentUser.getPhotoUrl();
-                    // Check if user's email is verified
-                    // boolean emailVerified = currentUser.isEmailVerified();
-                    // The user's ID, unique to the Firebase project. Do NOT use this value to
-                    // authenticate with your backend server, if you have one. Use
-                    // FirebaseUser.getIdToken() instead.
                     uid = currentUser.getUid();
                 }
 

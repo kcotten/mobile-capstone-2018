@@ -1,93 +1,74 @@
 package com.iremember.iremember;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.Places;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
-import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
+import java.util.List;
 
 public class Map_screen extends FragmentActivity implements
         OnMapReadyCallback,
-        LocationListener,
         GoogleMap.OnMyLocationClickListener,
         GoogleMap.OnMyLocationButtonClickListener {
 
+    // constants
     private static final String TAG = "Map_screen";
     private static final int LOCATION_REQUEST_CODE = 101;
     private static final float DEFAULT_ZOOM = 13;
-    private long UPDATE_INTERVAL = 10 * 1000;  /* 10 secs */
-    private long FASTEST_INTERVAL = 2000; /* 2 sec */
 
+    // instantiate a local map object, location, and location manager
     private GoogleMap mMap;
     private Location mLastLocation;
-    private boolean mLocationPermissionGranted;
-    FusedLocationProviderClient mFusedLocationProviderClient;
-    Marker mCurrLocationMarker;
-    LocationRequest mLocationRequest;
-    private final LatLng mDefaultLocation = new LatLng(36.9916, -122.0583);
+    private LocationManager locationManager;
 
-    private Button record;
-    private Button directions;
+    // bool to help us identify whether permissions are granted, not currently in use
+    private boolean mLocationPermissionGranted;
+
+    // our firebase user
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    String path = "users/" + currentUser.getUid() + "/location";
+
+    // our firebase realtimedb
+    private FirebaseDatabase db= FirebaseDatabase.getInstance();
+    private DatabaseReference dbRef = db.getReference(path);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_screen);
 
-        //record = findViewById(R.id.record);
-        //directions = findViewById(R.id.directions);
+        // get a local instance of the location manager, this is critical
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-
+        // this may or may not be needed due to the same call in request permissions?
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        startLocationUpdates();
-
-        Log.i(TAG, "onCreate()");
+        // test function, is the provider even enabled?
+        // boolean test = locationManager.isProviderEnabled(locationManager.NETWORK_PROVIDER);
+        Log.i(TAG, "onCreate() " /*+ String.valueOf(test)*/);
     }
 
     @Override
@@ -99,9 +80,15 @@ public class Map_screen extends FragmentActivity implements
             int permission = ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION);
             if (permission == PackageManager.PERMISSION_GRANTED) {
+                // permission has been granted so begin setup for the map
                 mLocationPermissionGranted = true;
-
                 mMap.setMyLocationEnabled(true);
+                mLastLocation = getLastKnownLocation();
+                double latitude = mLastLocation.getLatitude();
+                double longitude = mLastLocation.getLongitude();
+
+                LatLng latLng = new LatLng(latitude, longitude);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM));
             } else {
                 requestPermission(
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -109,6 +96,7 @@ public class Map_screen extends FragmentActivity implements
             }
         }
 
+        // get hold of the settings for the map and then set them
         UiSettings mapSettings;
         mapSettings = mMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
@@ -116,19 +104,9 @@ public class Map_screen extends FragmentActivity implements
 
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
-
-
-        /*
-        LatLng UCSC = new LatLng(36.9916, -122.0583);
-        Marker ucsc = mMap.addMarker(new MarkerOptions()
-                .position(UCSC)
-                .title("UCSC")
-                .snippet("University of California Santa Cruz"));
-        // mMap.moveCamera(CameraUpdateFactory.newLatLng(UCSC));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UCSC,13));
-        */
     }
 
+    // the my location button in the upper right of the screen
     @Override
     public void onMyLocationClick(@NonNull Location location) {
         double lat, lng;
@@ -142,16 +120,18 @@ public class Map_screen extends FragmentActivity implements
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
+        // which is the camera animates to the user's current position
         return false;
     }
 
+    // request permissions
     protected void requestPermission(String permissionType, int requestCode) {
         ActivityCompat.requestPermissions(this,
                 new String[]{permissionType}, requestCode
         );
     }
 
+    // after the user is done interacting with the activity, handle the results
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -163,6 +143,7 @@ public class Map_screen extends FragmentActivity implements
                             "Unable to show location - permission required",
                             Toast.LENGTH_LONG).show();
                 } else {
+                    // permissions are set, therefore...
                     SupportMapFragment mapFragment =
                             (SupportMapFragment) getSupportFragmentManager()
                                     .findFragmentById(R.id.map);
@@ -172,100 +153,59 @@ public class Map_screen extends FragmentActivity implements
         }
     }
 
-    protected void startLocationUpdates() {
-
-        // Create the location request to start receiving updates
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(UPDATE_INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
-
-        // Create LocationSettingsRequest object using location request
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(mLocationRequest);
-        LocationSettingsRequest locationSettingsRequest = builder.build();
-
-        // Check whether location settings are satisfied
-        // https://developers.google.com/android/reference/com/google/android/gms/location/SettingsClient
-        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
-        settingsClient.checkLocationSettings(locationSettingsRequest);
-
-        // new Google API SDK v11 uses getFusedLocationProviderClient(this)
+    // save a location to the firebae, may also want to add a pin
+    public void recordLocation(View view) {
+        String locProv;
+        // check for permissions per the IDE even though permissions are guarenteed to be set
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            requestPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    LOCATION_REQUEST_CODE);
             return;
         }
-        getFusedLocationProviderClient(this).requestLocationUpdates(mLocationRequest, new LocationCallback() {
-                    @Override
-                    public void onLocationResult(LocationResult locationResult) {
-                        // do work here
-                        onLocationChanged(locationResult.getLastLocation());
-                    }
-                },
-                Looper.myLooper());
-    }
+        mLastLocation = getLastKnownLocation();
 
-    public void onLocationChanged(Location location) {
-        // New location has now been determined
-        String msg = "Updated Location: " +
-                Double.toString(location.getLatitude()) + "," +
-                Double.toString(location.getLongitude());
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        // change the firebase to accept a LatLng instead of a location
+        double lat = mLastLocation.getLatitude();
+        double lng = mLastLocation.getLongitude();
+        LatLng latLng = new LatLng(lat, lng);
 
-        // You can now create a LatLng Object for use with maps
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-    }
+        // send to firebase
+        String key = dbRef.push().getKey();
+        dbRef.child(key).child("current location").setValue(mLastLocation);
 
-    @SuppressLint("MissingPermission")
-    public void getLastLocation() {
-        // Get last known recent location using new Google Play Services SDK (v11+)
-        FusedLocationProviderClient locationClient = getFusedLocationProviderClient(this);
-
-        locationClient.getLastLocation()
-                .addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // GPS location can be null if GPS is switched off
-                        if (location != null) {
-                            onLocationChanged(location);
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("Map_screen", "Error trying to get last GPS location");
-                        e.printStackTrace();
-                    }
-                });
-    }
-
-    public void recordLocation(View view) {
-        //@SuppressLint("MissingPermission") Task<Location> location = mFusedLocationProviderClient.getLastLocation();
-
-        //mFusedLocationProviderClient
-        onLocationChanged(mLastLocation);
-        if(mLastLocation != null) {
-            double lat = mLastLocation.getLatitude();
-            double lng = mLastLocation.getLongitude();
-        } else {
-            LocationManager locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
-            Criteria criteria = new Criteria();
-            String bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
-            locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
-        }
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));
     }
 
+    // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
         // code here
         Log.i(TAG, "generateDirections()");
+    }
+
+    // manually find the best location provider, auto was not working
+    private Location getLastKnownLocation() {
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            // this is not an error and is safe to ignore as far as I, kris, knows
+            // all the documentation states that this function is guaranteed to be non-null
+            Location l = locationManager.getLastKnownLocation(provider);
+            Log.d("last loc, p: %s, l: %s", provider + " " + l);
+
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null
+                    || l.getAccuracy() < bestLocation.getAccuracy()) {
+                Log.d("best last location: %s", " " + l);
+                bestLocation = l;
+            }
+        }
+        if (bestLocation == null) {
+            return null;
+        }
+        return bestLocation;
     }
 }
