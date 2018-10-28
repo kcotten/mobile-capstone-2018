@@ -16,4 +16,6 @@
     <string name="name">Name</string>
     <string name="editTextHint">Remember</string>
     <string name="title_activity_maps">Map</string>
+    <string name="remember">Remember</string>
+    <string name="directions">Directions</string>
 </resources>

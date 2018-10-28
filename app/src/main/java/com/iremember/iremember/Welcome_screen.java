@@ -342,8 +342,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     }
 
-
-
     @IgnoreExtraProperties
     public class User {
 
