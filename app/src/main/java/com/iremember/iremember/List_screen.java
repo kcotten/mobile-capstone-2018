@@ -1,6 +1,8 @@
 package com.iremember.iremember;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,23 +27,28 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class List_screen extends AppCompatActivity {
-
+    // constants
     private static final String TAG = "List_screen";
+
+    // UI elements
     private ListView dataListView;
     private EditText itemText;
     private Button findButton;
     private Button deleteButton;
     private Boolean searchMode = false;
     private Boolean itemSelected = false;
-
+    // iterator
     private int selectedPosition = 0;
 
+    // firebase User path for storage
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-    String path = "users/" + currentUser.getUid() + "/items";
+    String path = "users/" + (currentUser != null ? currentUser.getUid() : null) + "/items";
 
+    // get access to the firebase at path
     private FirebaseDatabase db= FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
 
+    // the list!
     ArrayList<String> listItems = new ArrayList<>();
     ArrayList<String> listKeys = new ArrayList<>();
     ArrayAdapter<String> adapter;
@@ -72,6 +79,8 @@ public class List_screen extends AppCompatActivity {
         addChildEventListener();
     }
 
+    // search for items in the list
+    @SuppressLint("SetTextI18n")
     public void findItems(View view) {
         Query query;
 
@@ -93,6 +102,7 @@ public class List_screen extends AppCompatActivity {
         query.addListenerForSingleValueEvent(queryValueListener);
     }
 
+    // here we listen for search in the realtimeDB
     ValueEventListener queryValueListener = new ValueEventListener() {
         @Override public void onDataChange(DataSnapshot dataSnapshot) {
             Iterable<DataSnapshot> snapshotIterator = dataSnapshot.getChildren();
@@ -108,11 +118,12 @@ public class List_screen extends AppCompatActivity {
             }
         }
 
-        @Override public void onCancelled(DatabaseError databaseError) {
+        @Override public void onCancelled(@NonNull DatabaseError databaseError) {
 
         }
     };
 
+    // add an item to the list
     public void addItem(View view) {
         String item = itemText.getText().toString();
         if(TextUtils.isEmpty(item)) {
@@ -123,15 +134,18 @@ public class List_screen extends AppCompatActivity {
 
         String key = dbRef.push().getKey();
         itemText.setText("");
+        assert key != null;
         dbRef.child(key).child("description").setValue(item);
         adapter.notifyDataSetChanged();
     }
 
+    // delete an item from the list
     public void deleteItem(View view) {
         dataListView.setItemChecked(selectedPosition, false);
         dbRef.child(listKeys.get(selectedPosition)).removeValue();
     }
 
+    // listen for changes in the list
     private void addChildEventListener() {
         ChildEventListener childListener = new ChildEventListener() {
             @Override public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -139,11 +153,11 @@ public class List_screen extends AppCompatActivity {
                 listKeys.add(dataSnapshot.getKey());
             }
 
-            @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            @Override public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
 
             }
 
-            @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            @Override public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
 
             }
 
@@ -158,7 +172,7 @@ public class List_screen extends AppCompatActivity {
                 }
             }
 
-            @Override public void onCancelled(DatabaseError databaseError) {
+            @Override public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         };

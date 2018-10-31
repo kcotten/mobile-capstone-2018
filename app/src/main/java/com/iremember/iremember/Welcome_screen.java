@@ -1,7 +1,6 @@
 package com.iremember.iremember;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -32,10 +31,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     // constants
     private static final String TAG = "Welcome_screen";
     private static int RC_SIGN_IN = 100;
-
-    private static FirebaseUser currentUser;
     private static final String TAG1 = "RealtimeDB";
-
 
     // firebase auth
     private FirebaseAuth.AuthStateListener AuthListener;
@@ -44,6 +40,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     // firebase database
     FirebaseDatabase db;
     private DatabaseReference dbRef;
+    FirebaseUser currentUser;
     String name;
     String firebase_email;
     String uid;
@@ -57,10 +54,11 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     Button map;
     Button tracked_items_list;
 
-    // add support for logins here
+    // add support for login here, warning is because we only implement a single sign in method
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
 
+    // really busy initialization, could maybe be broken down into helper functions
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +80,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         tracked_items_list.setOnClickListener(this);
         record_location.setOnClickListener(this);
 
+        // firebase, instantiate Auth and then create a listener to call our updateUI
         Auth = FirebaseAuth.getInstance();
         AuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -93,6 +92,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         Log.i(TAG, "onCreate");
     }
 
+    // button handling
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -116,6 +116,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    // update UI helper function, hide auth required items if not logged in
     private void updateUI() {
         FirebaseUser user = Auth.getCurrentUser();
         if(user == null) {
@@ -142,6 +143,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    // is the user signed in? update the UI accordingly
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -149,7 +151,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         if (requestCode == RC_SIGN_IN) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == RESULT_OK) {
-                Log.i(TAG,"User signed in with " + response.getProviderType());
+                Log.i(TAG,"User signed in with " + (response != null ? response.getProviderType() : null));
 
                 currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 if (currentUser != null) {
@@ -167,6 +169,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    // user sign in for firebaseAuth
     public void signIn(View v) {
         startActivityForResult(
                 AuthUI.getInstance()
@@ -176,6 +179,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 RC_SIGN_IN);
     }
 
+    // user can delete account from the firebase, not implemented in the UI
     public void deleteAccount(View v) {
         AuthUI.getInstance()
                 .delete(this)
@@ -188,6 +192,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     }
 
+    // sign out of firebase auth
     public void signOut(View view) {
         AuthUI.getInstance()
                 .signOut(this)
@@ -200,53 +205,15 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     }
 
     /*
-    public void checkEmail(View v) {
-        Auth.fetchProvidersForEmail()
-    }
-    */
-
-    /*
-    ValueEventListener changeListener = new ValueEventListener() {
-        @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-
-            String change = dataSnapshot.child(
-                    currentUser.getUid()).child("message")
-                    .getValue(String.class);
-
-            userText.setText(change);
-        }
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-            notifyUser("Database error: " + databaseError.toException());
-        }
-    };
-    */
-
+    // toast helper function is we need it
     private void notifyUser(String message) {
         Toast.makeText(this, message,
                 Toast.LENGTH_SHORT).show();
     }
-
-    /*
-    public void saveData(View view) {
-        dbRef.child(currentUser.getUid()).child("message")
-                .setValue(userText.getText().toString(), completionListener);
-    }
     */
+    // lifecycle methods, originally did some bundle stuff here but most of that code got removed
 
-    DatabaseReference.CompletionListener completionListener =
-            new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(DatabaseError databaseError,
-                                       DatabaseReference databaseReference) {
-
-                    if (databaseError != null) {
-                        notifyUser(databaseError.getMessage());
-                    }
-                }
-            };
-
+    // Start the firebase authorization listener
     @Override
     protected void onStart() {
         super.onStart();
@@ -297,6 +264,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         Log.i(TAG, "onRestoreInstanceState");
     }
 
+    // firebase helper function
     public void writeUserData(String name, String firebase_email) {
         db = FirebaseDatabase.getInstance();
         dbRef = db.getReference();
@@ -305,17 +273,19 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         dbRef.child("users").child(uid).addListenerForSingleValueEvent(
             new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
+                        Log.i(TAG1, "user exists");
                         // User Exists
                         // Do your stuff here if user already exits
                     } else {
+                        Log.i(TAG1, "user created");
                         dbRef.child("users").child(uid).setValue(user);
                     }
                 }
 
                 @Override
-                public void onCancelled(DatabaseError databaseError) {
+                public void onCancelled(@NonNull DatabaseError databaseError) {
                     Log.w(TAG, "getUser:onCancelled", databaseError.toException());
                 }
             }
@@ -325,21 +295,17 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     @IgnoreExtraProperties
     public class User {
-
-        public String username;
+        String username;
         public String email;
-
-        //public String items;
-        // public List<> locations;
 
         public User() {
             // Default constructor required for calls to DataSnapshot.getValue(User.class)
+            Log.i(TAG, "user constructor called");
         }
 
-        public User(String username, String email) {
+        User(String username, String email) {
             this.username = username;
             this.email = email;
-            //this.items = "Remembered Items";
         }
 
     }

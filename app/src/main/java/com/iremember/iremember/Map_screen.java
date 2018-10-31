@@ -1,6 +1,7 @@
 package com.iremember.iremember;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -38,12 +39,12 @@ public class Map_screen extends FragmentActivity implements
     private static final float DEFAULT_ZOOM = 13;
 
     // instantiate a local map object, location, and location manager
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     private Location mLastLocation;
     private LocationManager locationManager;
 
     // bool to help us identify whether permissions are granted, not currently in use
-    private boolean mLocationPermissionGranted;
+    // private boolean mLocationPermissionGranted;
 
     // our firebase user
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -64,6 +65,7 @@ public class Map_screen extends FragmentActivity implements
         // this may or may not be needed due to the same call in request permissions?
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
         // test function, is the provider even enabled?
@@ -81,7 +83,7 @@ public class Map_screen extends FragmentActivity implements
                     Manifest.permission.ACCESS_FINE_LOCATION);
             if (permission == PackageManager.PERMISSION_GRANTED) {
                 // permission has been granted so begin setup for the map
-                mLocationPermissionGranted = true;
+                // mLocationPermissionGranted = true;
                 mMap.setMyLocationEnabled(true);
                 mLastLocation = getLastKnownLocation();
                 double latitude = mLastLocation.getLatitude();
@@ -133,7 +135,7 @@ public class Map_screen extends FragmentActivity implements
 
     // after the user is done interacting with the activity, handle the results
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case LOCATION_REQUEST_CODE: {
                 if (grantResults.length == 0
@@ -147,16 +149,17 @@ public class Map_screen extends FragmentActivity implements
                     SupportMapFragment mapFragment =
                             (SupportMapFragment) getSupportFragmentManager()
                                     .findFragmentById(R.id.map);
+                    assert mapFragment != null;
                     mapFragment.getMapAsync(this);
                 }
             }
         }
     }
 
-    // save a location to the firebae, may also want to add a pin
+    // save a location to the firebase, may also want to add a pin
     public void recordLocation(View view) {
-        String locProv;
-        // check for permissions per the IDE even though permissions are guarenteed to be set
+        // String locProv;
+        // check for permissions per the IDE even though permissions are guaranteed to be set
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -172,6 +175,7 @@ public class Map_screen extends FragmentActivity implements
 
         // send to firebase
         String key = dbRef.push().getKey();
+        assert key != null;
         dbRef.child(key).child("current location").setValue(mLastLocation);
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
@@ -191,7 +195,7 @@ public class Map_screen extends FragmentActivity implements
         for (String provider : providers) {
             // this is not an error and is safe to ignore as far as I, kris, knows
             // all the documentation states that this function is guaranteed to be non-null
-            Location l = locationManager.getLastKnownLocation(provider);
+            @SuppressLint("MissingPermission") Location l = locationManager.getLastKnownLocation(provider);
             Log.d("last loc, p: %s, l: %s", provider + " " + l);
 
             if (l == null) {
