@@ -4,7 +4,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -31,7 +33,8 @@ import java.util.List;
 public class Map_screen extends FragmentActivity implements
         OnMapReadyCallback,
         GoogleMap.OnMyLocationClickListener,
-        GoogleMap.OnMyLocationButtonClickListener {
+        GoogleMap.OnMyLocationButtonClickListener,
+        LocationListener {
 
     // constants
     private static final String TAG = "Map_screen";
@@ -42,6 +45,11 @@ public class Map_screen extends FragmentActivity implements
     public GoogleMap mMap;
     private Location mLastLocation;
     private LocationManager locationManager;
+    public Criteria criteria;
+    public String bestProvider;
+
+    double latitude;
+    double longitude;
 
     // bool to help us identify whether permissions are granted, not currently in use
     // private boolean mLocationPermissionGranted;
@@ -78,25 +86,9 @@ public class Map_screen extends FragmentActivity implements
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        if (mMap != null) {
-            int permission = ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION);
-            if (permission == PackageManager.PERMISSION_GRANTED) {
-                // permission has been granted so begin setup for the map
-                // mLocationPermissionGranted = true;
-                mMap.setMyLocationEnabled(true);
-                mLastLocation = getLastKnownLocation();
-                double latitude = mLastLocation.getLatitude();
-                double longitude = mLastLocation.getLongitude();
+        getLocation(mMap);
 
-                LatLng latLng = new LatLng(latitude, longitude);
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM));
-            } else {
-                requestPermission(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        LOCATION_REQUEST_CODE);
-            }
-        }
+
 
         // get hold of the settings for the map and then set them
         UiSettings mapSettings;
@@ -106,6 +98,38 @@ public class Map_screen extends FragmentActivity implements
 
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
+    }
+
+    public void getLocation(GoogleMap mMap) {
+        locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
+        criteria = new Criteria();
+        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+
+        if (mMap != null) {
+            int permission = ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION);
+            if (permission == PackageManager.PERMISSION_GRANTED) {
+                // permission has been granted so begin setup for the map
+                // mLocationPermissionGranted = true;
+                mMap.setMyLocationEnabled(true);
+                mLastLocation = getLastKnownLocation();
+                if (mLastLocation != null) {
+                    latitude = mLastLocation.getLatitude();
+                    longitude = mLastLocation.getLongitude();
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM));
+                } else {
+
+                    locationManager.requestLocationUpdates(bestProvider, 1000, 0, (LocationListener) this);
+                }
+
+            } else {
+                requestPermission(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        LOCATION_REQUEST_CODE);
+            }
+        }
+
     }
 
     // the my location button in the upper right of the screen
@@ -160,7 +184,7 @@ public class Map_screen extends FragmentActivity implements
     public void recordLocation(View view) {
         // String locProv;
         // check for permissions per the IDE even though permissions are guaranteed to be set
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     LOCATION_REQUEST_CODE);
@@ -212,4 +236,40 @@ public class Map_screen extends FragmentActivity implements
         }
         return bestLocation;
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        //Hey, a non null location! Sweet!
+
+        //remove location callback:
+        locationManager.removeUpdates((LocationListener) this);
+
+        //open the map:
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        Toast.makeText(this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
 }
