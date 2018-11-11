@@ -86,9 +86,8 @@ public class Map_screen extends FragmentActivity implements
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
+        // Get the location
         getLocation(mMap);
-
-
 
         // get hold of the settings for the map and then set them
         UiSettings mapSettings;
@@ -100,6 +99,7 @@ public class Map_screen extends FragmentActivity implements
         mMap.setOnMyLocationClickListener(this);
     }
 
+    // find the location
     public void getLocation(GoogleMap mMap) {
         locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
         criteria = new Criteria();
@@ -119,7 +119,6 @@ public class Map_screen extends FragmentActivity implements
                     LatLng latLng = new LatLng(latitude, longitude);
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM));
                 } else {
-
                     locationManager.requestLocationUpdates(bestProvider, 1000, 0, (LocationListener) this);
                 }
 
@@ -135,6 +134,7 @@ public class Map_screen extends FragmentActivity implements
     // the my location button in the upper right of the screen
     @Override
     public void onMyLocationClick(@NonNull Location location) {
+        Log.i(TAG, "onMyLocationClick()");
         double lat, lng;
         lat = location.getLatitude();
         lng = location.getLongitude();
@@ -144,7 +144,8 @@ public class Map_screen extends FragmentActivity implements
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+
+        //Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
         // which is the camera animates to the user's current position
         return false;
@@ -246,10 +247,8 @@ public class Map_screen extends FragmentActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        //Hey, a non null location! Sweet!
-
         //remove location callback:
-        locationManager.removeUpdates((LocationListener) this);
+        locationManager.removeUpdates(this);
 
         //open the map:
         latitude = location.getLatitude();
