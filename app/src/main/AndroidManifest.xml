@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Welcome_screen">
+        <activity android:name=".Splash_screen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -21,7 +21,7 @@
         </activity>
         <activity
             android:name=".List_screen"
-            android:parentActivityName=".Welcome_screen"></activity>
+            android:parentActivityName=".Welcome_screen" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -33,7 +33,17 @@
 
         <activity
             android:name=".Map_screen"
-            android:parentActivityName=".Welcome_screen"></activity>
+            android:parentActivityName=".Welcome_screen" />
+        <!--<activity
+            android:name=".Splash_screen"
+            android:label="@string/title_activity_splash_screen"
+            android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity> -->
     </application>
 
 </manifest>
