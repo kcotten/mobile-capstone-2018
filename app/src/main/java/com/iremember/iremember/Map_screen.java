@@ -2,7 +2,9 @@ package com.iremember.iremember;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -13,8 +15,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,8 +27,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -51,6 +60,14 @@ public class Map_screen extends FragmentActivity implements
     double latitude;
     double longitude;
 
+    double marker_latitude;
+    double marker_longitude;
+
+    LatLng marker_latlng;
+
+    private String locationName = "";
+    private String API_KEY = "AIzaSyA1xDIXPZDyoF8vFStlA89kAv0eXdbp8NQ";
+
     // bool to help us identify whether permissions are granted, not currently in use
     // private boolean mLocationPermissionGranted;
 
@@ -59,8 +76,9 @@ public class Map_screen extends FragmentActivity implements
     String path = "users/" + currentUser.getUid() + "/location";
 
     // our firebase realtimedb
-    private FirebaseDatabase db= FirebaseDatabase.getInstance();
+    private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,11 +101,12 @@ public class Map_screen extends FragmentActivity implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.i(TAG, "onMapReady()");
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         // Get the location
-        getLocation(mMap);
+        getLocation(googleMap);
 
         // get hold of the settings for the map and then set them
         UiSettings mapSettings;
@@ -95,8 +114,46 @@ public class Map_screen extends FragmentActivity implements
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
 
+        // -----------------------------------------------------------------------------------------
+        dbRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                LatLng newLocation = new LatLng(
+                        dataSnapshot.child("latitude").getValue(Double.class),
+                        dataSnapshot.child("longitude").getValue(Double.class)
+                );
+                mMap.addMarker(new MarkerOptions()
+                        .position(newLocation)
+                        .title(dataSnapshot.getKey()));
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+        // -----------------------------------------------------------------------------------------
+
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                marker_latitude = marker.getPosition().latitude;
+                marker_longitude = marker.getPosition().longitude;
+
+                marker_latlng = new LatLng(marker_latitude, marker_longitude);
+                //Log.i(TAG,marker_latlng.toString());
+                return false;
+            }
+        });
     }
 
     // find the location
@@ -197,19 +254,65 @@ public class Map_screen extends FragmentActivity implements
         double lat = mLastLocation.getLatitude();
         double lng = mLastLocation.getLongitude();
         LatLng latLng = new LatLng(lat, lng);
+        
+        // -----------------------------------------------------------------------------------------
+        // laydown marker
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Remember"));
 
         // send to firebase
+
+        // the code right here will create unique ids and then save multiple items
         String key = dbRef.push().getKey();
         assert key != null;
-        dbRef.child(key).child("current location").setValue(mLastLocation);
+        dbRef.child(key).setValue(latLng);
+
+        // dbRef.child("Current Location").setValue(latLng);
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));
     }
 
+    /*
+    private void getMarkerName() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Title");
+
+        final EditText input = new EditText(this);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                locationName = input.getText().toString();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+    */
+
     // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
         // code here
+        mLastLocation = getLastKnownLocation();
+
+        double lat = mLastLocation.getLatitude();
+        double lng = mLastLocation.getLongitude();
+        LatLng latLng = new LatLng(lat, lng);
+
+        // Directions to marker_latlng
+        Log.i(TAG,"User: " + latLng.toString());
+        Log.i(TAG,"Marker: " + marker_latlng.toString());
+
         Log.i(TAG, "generateDirections()");
     }
 
@@ -256,6 +359,21 @@ public class Map_screen extends FragmentActivity implements
         Toast.makeText(this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
     }
 
+    /*
+    class PromptRunnable implements Runnable {
+        private String v;
+        void setValue(String inV) {
+            this.v = inV;
+        }
+        String getValue() {
+            return this.v;
+        }
+        public void run() {
+            this.run();
+        }
+    }
+    */
+
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
@@ -270,5 +388,4 @@ public class Map_screen extends FragmentActivity implements
     public void onProviderDisabled(String provider) {
 
     }
-
 }
