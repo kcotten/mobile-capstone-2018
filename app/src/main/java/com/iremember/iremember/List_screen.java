@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -53,6 +54,12 @@ public class List_screen extends AppCompatActivity {
     ArrayList<String> listKeys = new ArrayList<>();
     ArrayAdapter<String> adapter;
 
+    // need a location when an item is created
+    double latitude = 36.962421;
+    double longitude = -122.0233301;
+    LatLng latLng = new LatLng(latitude, longitude);
+    private String specialkey;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,7 +93,7 @@ public class List_screen extends AppCompatActivity {
 
         if (!searchMode) {
             findButton.setText("Clear");
-            query = dbRef.orderByChild("description"). equalTo(itemText.getText().toString());
+            query = dbRef.orderByChild("description").equalTo(itemText.getText().toString());
             searchMode = true;
         } else {
             searchMode = false;
@@ -111,7 +118,7 @@ public class List_screen extends AppCompatActivity {
             listKeys.clear();
             while (iterator.hasNext()) {
                 DataSnapshot next = iterator.next();
-                String match = (String) next.child("description").getValue();
+                String match = next.child("description").getValue(String.class);
                 String key = next.getKey();
                 listKeys.add(key);
                 adapter.add(match);
@@ -130,13 +137,15 @@ public class List_screen extends AppCompatActivity {
             itemText.setError("Item cannot be empty");
             return;
         }
-
-
-        String key = dbRef.push().getKey();
+        specialkey = dbRef.push().getKey();
         itemText.setText("");
-        assert key != null;
-        dbRef.child(key).child("description").setValue(item);
+        assert specialkey != null;
+
+        dbRef.child(specialkey).child("description").setValue(item);
+
         adapter.notifyDataSetChanged();
+
+        dbRef.child(specialkey).child("location").setValue(latLng);
     }
 
     // delete an item from the list
@@ -148,8 +157,8 @@ public class List_screen extends AppCompatActivity {
     // listen for changes in the list
     private void addChildEventListener() {
         ChildEventListener childListener = new ChildEventListener() {
-            @Override public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                adapter.add( (String) dataSnapshot.child("description").getValue());
+            @Override public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
+                adapter.add(dataSnapshot.child("description").getValue(String.class));
                 listKeys.add(dataSnapshot.getKey());
             }
 

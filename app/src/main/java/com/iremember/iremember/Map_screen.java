@@ -87,6 +87,7 @@ public class Map_screen extends FragmentActivity implements
     Polyline line;
 
     private String locationName = "";
+    private String key = "";
     private String API_KEY = "AIzaSyA1xDIXPZDyoF8vFStlA89kAv0eXdbp8NQ";
 
     // bool to help us identify whether permissions are granted, not currently in use
@@ -94,7 +95,7 @@ public class Map_screen extends FragmentActivity implements
 
     // our firebase user
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-    String path = "users/" + currentUser.getUid() + "/location";
+    String path = "users/" + currentUser.getUid() + "/items";
 
     // our firebase realtimedb
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
@@ -134,18 +135,19 @@ public class Map_screen extends FragmentActivity implements
         mapSettings = mMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
+        mapSettings.setMapToolbarEnabled(false);
 
         // -----------------------------------------------------------------------------------------
         dbRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 LatLng newLocation = new LatLng(
-                        dataSnapshot.child("latitude").getValue(Double.class),
-                        dataSnapshot.child("longitude").getValue(Double.class)
+                        dataSnapshot.child("location").child("latitude").getValue(Double.class),
+                        dataSnapshot.child("location").child("longitude").getValue(Double.class)
                 );
                 mMap.addMarker(new MarkerOptions()
                         .position(newLocation)
-                        .title(dataSnapshot.getKey()));
+                        .title(dataSnapshot.child("description").getValue(String.class)));
             }
 
             @Override
@@ -261,6 +263,7 @@ public class Map_screen extends FragmentActivity implements
 
     // save a location to the firebase, may also want to add a pin
     public void recordLocation(View view) {
+        getMarkerName();
         // String locProv;
         // check for permissions per the IDE even though permissions are guaranteed to be set
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -278,25 +281,24 @@ public class Map_screen extends FragmentActivity implements
         
         // -----------------------------------------------------------------------------------------
         // laydown marker
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Remember"));
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Current Location"));
 
         // send to firebase
 
         // the code right here will create unique ids and then save multiple items
-        String key = dbRef.push().getKey();
+        key = dbRef.push().getKey();
         assert key != null;
-        dbRef.child(key).setValue(latLng);
+        dbRef.child(key).child("location").setValue(latLng);
 
-        // dbRef.child("Current Location").setValue(latLng);
+
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));
     }
 
-    /*
     private void getMarkerName() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Title");
+        builder.setTitle("Description");
 
         final EditText input = new EditText(this);
         // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
@@ -308,6 +310,7 @@ public class Map_screen extends FragmentActivity implements
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 locationName = input.getText().toString();
+                dbRef.child(key).child("description").setValue(locationName);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -319,7 +322,7 @@ public class Map_screen extends FragmentActivity implements
 
         builder.show();
     }
-    */
+
 
     // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
