@@ -20,6 +20,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -31,9 +32,13 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.maps.model.Dot;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,6 +48,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +61,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -68,6 +75,12 @@ public class Map_screen extends FragmentActivity implements
     private static final String TAG = "Map_screen";
     private static final int LOCATION_REQUEST_CODE = 101;
     private static final float DEFAULT_ZOOM = 13;
+    public static final int PATTERN_DASH_LENGTH_PX = 20;
+    public static final int PATTERN_GAP_LENGTH_PX = 20;
+    public static final PatternItem DOT = new Dot();
+    public static final PatternItem DASH = new Dash(PATTERN_DASH_LENGTH_PX);
+    public static final PatternItem GAP = new Gap(PATTERN_GAP_LENGTH_PX);
+    public static final List<PatternItem> PATTERN_POLYGON_ALPHA = Arrays.asList(GAP, DASH);
 
     // instantiate a local map object, location, and location manager
     public GoogleMap mMap;
@@ -100,7 +113,9 @@ public class Map_screen extends FragmentActivity implements
     // our firebase realtimedb
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
+    private DatabaseReference dbRef2 = db.getReference("users/" + currentUser.getUid());
 
+    String mode= "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +131,28 @@ public class Map_screen extends FragmentActivity implements
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
+        getMode();
+        //mode = Welcome_screen.mode;
+
         // test function, is the provider even enabled?
         // boolean test = locationManager.isProviderEnabled(locationManager.NETWORK_PROVIDER);
         Log.i(TAG, "onCreate() " /*+ String.valueOf(test)*/);
+    }
+
+    private void getMode() {
+        dbRef2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(mode == "") {
+                    mode = dataSnapshot.child("setting").getValue(String.class);
+                    assert mode != null;
+                    Log.i(TAG, mode);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 
     @Override
@@ -214,12 +248,14 @@ public class Map_screen extends FragmentActivity implements
     // the my location button in the upper right of the screen
     @Override
     public void onMyLocationClick(@NonNull Location location) {
+        /*
         Log.i(TAG, "onMyLocationClick()");
         double lat, lng;
         lat = location.getLatitude();
         lng = location.getLongitude();
         Toast.makeText(this, "Current location:\n" + String.valueOf(lat) + " " +
                 String.valueOf(lng), Toast.LENGTH_LONG).show();
+        */
     }
 
     @Override
@@ -326,6 +362,11 @@ public class Map_screen extends FragmentActivity implements
 
     // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
+        if(marker_latlng == null) {
+            Toast.makeText(this,"Must have destination marker selected.",Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "Returning to map");
+            return;
+        }
         // code here
         mLastLocation = getLastKnownLocation();
 
@@ -431,8 +472,10 @@ public class Map_screen extends FragmentActivity implements
         // Sensor enabled
         //String sensor = "sensor=false";
 
+        String str_mode = "mode="+mode;
+
         // Building the parameters to the web service +"&"+sensor
-        String parameters = str_origin+"&"+str_dest;
+        String parameters = str_origin+"&"+str_dest+"&"+str_mode;
 
         // Output format
         String output = "json";
@@ -540,15 +583,9 @@ public class Map_screen extends FragmentActivity implements
 
             // Traversing through all the routes
             Log.i(TAG, String.valueOf(result.size()));
-            for (
-                    int i = 0; i < result.size(); i++)
-
-            {
-
-                // Fetching i-th route
+            for (int i = 0; i < result.size(); i++) {
                 List<HashMap<String, String>> path = result.get(i);
 
-                // Fetching all the points in i-th route
                 Log.i(TAG, String.valueOf(path.size()));
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
@@ -563,7 +600,9 @@ public class Map_screen extends FragmentActivity implements
                 // Adding all the points in the route to LineOptions
                 lineOptions.addAll(points);
                 lineOptions.width(16);
-                lineOptions.color(Color.MAGENTA);
+                lineOptions.color(Color.RED);
+                if(mode.equals("walking"))
+                    lineOptions.pattern(PATTERN_POLYGON_ALPHA);
             }
             addLinesToMap(lineOptions);
 

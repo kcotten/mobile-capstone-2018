@@ -1,12 +1,19 @@
 package com.iremember.iremember;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +51,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     String name;
     String firebase_email;
     String uid;
+    public static String mode;
 
     // UI elements
     TextView email;
@@ -132,7 +140,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             logout_button.setVisibility(View.VISIBLE);
             email.setVisibility(View.VISIBLE);
             userName.setVisibility(View.GONE);
-            record_location.setVisibility(View.VISIBLE);
+            record_location.setVisibility(View.GONE);
             map.setVisibility(View.VISIBLE);
             tracked_items_list.setVisibility(View.VISIBLE);
 
@@ -293,10 +301,17 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     }
 
+    public void settings(View view) {
+        Log.i("Floating Action Button", "Settings_screen Launched");
+        Intent intent = new Intent(this, Settings_screen.class);
+        startActivity(intent);
+    }
+
     @IgnoreExtraProperties
     public class User {
         String username;
         public String email;
+        public String setting;
 
         public User() {
             // Default constructor required for calls to DataSnapshot.getValue(User.class)
@@ -306,6 +321,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         User(String username, String email) {
             this.username = username;
             this.email = email;
+            this.setting = "walking";
         }
 
     }
