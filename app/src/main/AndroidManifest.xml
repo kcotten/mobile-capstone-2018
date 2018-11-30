@@ -19,6 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Welcome_screen"
+            android:parentActivityName=".Splash_screen">
+        </activity>
         <activity
             android:name=".List_screen"
             android:parentActivityName=".Welcome_screen" />
