@@ -6,17 +6,23 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -26,9 +32,15 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.maps.model.Dot;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PatternItem;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -36,7 +48,21 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Map_screen extends FragmentActivity implements
@@ -49,6 +75,12 @@ public class Map_screen extends FragmentActivity implements
     private static final String TAG = "Map_screen";
     private static final int LOCATION_REQUEST_CODE = 101;
     private static final float DEFAULT_ZOOM = 13;
+    public static final int PATTERN_DASH_LENGTH_PX = 20;
+    public static final int PATTERN_GAP_LENGTH_PX = 20;
+    public static final PatternItem DOT = new Dot();
+    public static final PatternItem DASH = new Dash(PATTERN_DASH_LENGTH_PX);
+    public static final PatternItem GAP = new Gap(PATTERN_GAP_LENGTH_PX);
+    public static final List<PatternItem> PATTERN_POLYGON_ALPHA = Arrays.asList(GAP, DASH);
 
     // instantiate a local map object, location, and location manager
     public GoogleMap mMap;
@@ -65,7 +97,10 @@ public class Map_screen extends FragmentActivity implements
 
     LatLng marker_latlng;
 
+    Polyline line;
+
     private String locationName = "";
+    private String key = "";
     private String API_KEY = "AIzaSyA1xDIXPZDyoF8vFStlA89kAv0eXdbp8NQ";
 
     // bool to help us identify whether permissions are granted, not currently in use
@@ -73,12 +108,14 @@ public class Map_screen extends FragmentActivity implements
 
     // our firebase user
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-    String path = "users/" + currentUser.getUid() + "/location";
+    String path = "users/" + currentUser.getUid() + "/items";
 
     // our firebase realtimedb
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
+    private DatabaseReference dbRef2 = db.getReference("users/" + currentUser.getUid());
 
+    String mode= "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,9 +131,28 @@ public class Map_screen extends FragmentActivity implements
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
+        getMode();
+        //mode = Welcome_screen.mode;
+
         // test function, is the provider even enabled?
         // boolean test = locationManager.isProviderEnabled(locationManager.NETWORK_PROVIDER);
         Log.i(TAG, "onCreate() " /*+ String.valueOf(test)*/);
+    }
+
+    private void getMode() {
+        dbRef2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(mode == "") {
+                    mode = dataSnapshot.child("setting").getValue(String.class);
+                    assert mode != null;
+                    Log.i(TAG, mode);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 
     @Override
@@ -113,18 +169,19 @@ public class Map_screen extends FragmentActivity implements
         mapSettings = mMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
+        mapSettings.setMapToolbarEnabled(false);
 
         // -----------------------------------------------------------------------------------------
         dbRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 LatLng newLocation = new LatLng(
-                        dataSnapshot.child("latitude").getValue(Double.class),
-                        dataSnapshot.child("longitude").getValue(Double.class)
+                        dataSnapshot.child("location").child("latitude").getValue(Double.class),
+                        dataSnapshot.child("location").child("longitude").getValue(Double.class)
                 );
                 mMap.addMarker(new MarkerOptions()
                         .position(newLocation)
-                        .title(dataSnapshot.getKey()));
+                        .title(dataSnapshot.child("description").getValue(String.class)));
             }
 
             @Override
@@ -191,12 +248,14 @@ public class Map_screen extends FragmentActivity implements
     // the my location button in the upper right of the screen
     @Override
     public void onMyLocationClick(@NonNull Location location) {
+        /*
         Log.i(TAG, "onMyLocationClick()");
         double lat, lng;
         lat = location.getLatitude();
         lng = location.getLongitude();
         Toast.makeText(this, "Current location:\n" + String.valueOf(lat) + " " +
                 String.valueOf(lng), Toast.LENGTH_LONG).show();
+        */
     }
 
     @Override
@@ -240,6 +299,7 @@ public class Map_screen extends FragmentActivity implements
 
     // save a location to the firebase, may also want to add a pin
     public void recordLocation(View view) {
+        getMarkerName();
         // String locProv;
         // check for permissions per the IDE even though permissions are guaranteed to be set
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -257,25 +317,24 @@ public class Map_screen extends FragmentActivity implements
         
         // -----------------------------------------------------------------------------------------
         // laydown marker
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Remember"));
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Current Location"));
 
         // send to firebase
 
         // the code right here will create unique ids and then save multiple items
-        String key = dbRef.push().getKey();
+        key = dbRef.push().getKey();
         assert key != null;
-        dbRef.child(key).setValue(latLng);
+        dbRef.child(key).child("location").setValue(latLng);
 
-        // dbRef.child("Current Location").setValue(latLng);
+
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));
     }
 
-    /*
     private void getMarkerName() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Title");
+        builder.setTitle("Description");
 
         final EditText input = new EditText(this);
         // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
@@ -287,6 +346,7 @@ public class Map_screen extends FragmentActivity implements
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 locationName = input.getText().toString();
+                dbRef.child(key).child("description").setValue(locationName);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -298,10 +358,15 @@ public class Map_screen extends FragmentActivity implements
 
         builder.show();
     }
-    */
+
 
     // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
+        if(marker_latlng == null) {
+            Toast.makeText(this,"Must have destination marker selected.",Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "Returning to map");
+            return;
+        }
         // code here
         mLastLocation = getLastKnownLocation();
 
@@ -312,6 +377,13 @@ public class Map_screen extends FragmentActivity implements
         // Directions to marker_latlng
         Log.i(TAG,"User: " + latLng.toString());
         Log.i(TAG,"Marker: " + marker_latlng.toString());
+
+        String url = getDirectionsUrl(latLng, marker_latlng);
+
+        DownloadTask downloadTask = new DownloadTask();
+
+        downloadTask.execute(url);
+
 
         Log.i(TAG, "generateDirections()");
     }
@@ -387,5 +459,171 @@ public class Map_screen extends FragmentActivity implements
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    private String getDirectionsUrl(LatLng origin,LatLng dest){
+
+        // Origin of route
+        String str_origin = "origin="+origin.latitude+","+origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination="+dest.latitude+","+dest.longitude;
+
+        // Sensor enabled
+        //String sensor = "sensor=false";
+
+        String str_mode = "mode="+mode;
+
+        // Building the parameters to the web service +"&"+sensor
+        String parameters = str_origin+"&"+str_dest+"&"+str_mode;
+
+        // Output format
+        String output = "json";
+
+        String url = "https://maps.googleapis.com/maps/api/directions/"+output+"?"+parameters+"&key="+API_KEY;
+        Log.i(TAG,url);
+        return url;
+    }
+
+    private String downloadUrl(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try{
+            URL url = new URL(strUrl);
+
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            // Connecting to url
+            urlConnection.connect();
+
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+
+            StringBuffer sb  = new StringBuffer();
+
+            String line = "";
+            while( ( line = br.readLine())  != null){
+                sb.append(line);
+            }
+
+            data = sb.toString();
+
+            br.close();
+
+        }catch(Exception e){
+            Log.d(TAG, e.toString());
+        }finally{
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
+    }
+
+    // Fetches data from url passed
+    private class DownloadTask extends AsyncTask<String, Void, String> {
+
+        // Downloading data in non-ui thread
+        @Override
+        protected String doInBackground(String... url) {
+
+            // For storing data from web service
+            String data = "";
+
+            try{
+                // Fetching the data from web service
+                data = downloadUrl(url[0]);
+            }catch(Exception e){
+                Log.d("Background Task",e.toString());
+            }
+            return data;
+        }
+
+        // Executes in UI thread, after the execution of
+        // doInBackground()
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            ParserTask parserTask = new ParserTask();
+
+            // Invokes the thread for parsing the JSON data
+            parserTask.execute(result);
+        }
+    }
+
+    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String,String>>>> {
+
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+
+            try{
+                jObject = new JSONObject(jsonData[0]);
+                DirectionsJSONParser parser = new DirectionsJSONParser();
+
+                // Starts parsing data
+                routes = parser.parse(jObject);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
+
+            ArrayList<LatLng> points = new ArrayList<LatLng>();
+            PolylineOptions lineOptions = new PolylineOptions();
+            MarkerOptions markerOptions = new MarkerOptions();
+
+            // Traversing through all the routes
+            Log.i(TAG, String.valueOf(result.size()));
+            for (int i = 0; i < result.size(); i++) {
+                List<HashMap<String, String>> path = result.get(i);
+
+                Log.i(TAG, String.valueOf(path.size()));
+                for (int j = 0; j < path.size(); j++) {
+                    HashMap<String, String> point = path.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+
+                    points.add(position);
+                }
+
+                // Adding all the points in the route to LineOptions
+                lineOptions.addAll(points);
+                lineOptions.width(16);
+                lineOptions.color(Color.RED);
+                if(mode.equals("walking"))
+                    lineOptions.pattern(PATTERN_POLYGON_ALPHA);
+            }
+            addLinesToMap(lineOptions);
+
+        }
+    }
+
+    public void addLinesToMap(final PolylineOptions lineOptions) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                // Drawing polyline in the Google Map for the i-th route
+                Log.i(TAG, String.valueOf(lineOptions));
+                line = mMap.addPolyline(lineOptions);
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        //getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 }

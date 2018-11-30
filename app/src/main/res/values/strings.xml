@@ -8,7 +8,7 @@
     <string name="logout_text">Logout</string>
     <string name="record_location">Record Location</string>
     <string name="map">Map</string>
-    <string name="tracked_item_list">Tracked Item List</string>
+    <string name="tracked_item_list">Items</string>
     <string name="update">update</string>
     <string name="addBtn">Add</string>
     <string name="find">Find</string>
@@ -19,4 +19,7 @@
     <string name="remember">Remember</string>
     <string name="directions">Directions</string>
     <string name="title_activity_splash_screen">Splash_screen</string>
+    <string name="app_logo">App Logo</string>
+    <string name="walking">Walking</string>
+    <string name="driving">Driving</string>
 </resources>
