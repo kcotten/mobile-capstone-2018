@@ -22,4 +22,6 @@
     <string name="app_logo">App Logo</string>
     <string name="walking">Walking</string>
     <string name="driving">Driving</string>
+    <string name="splash_screen_icon" />
+    <string name="iremember">iRemember</string>
 </resources>

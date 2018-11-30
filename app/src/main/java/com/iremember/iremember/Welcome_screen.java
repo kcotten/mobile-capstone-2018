@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -61,6 +62,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     Button record_location;
     Button map;
     Button tracked_items_list;
+    FloatingActionButton settings;
 
     // add support for login here, warning is because we only implement a single sign in method
     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -83,6 +85,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         tracked_items_list = findViewById(R.id.button5);
         email = findViewById(R.id.email);
         userName = findViewById(R.id.user);
+        settings = findViewById(R.id.floatingActionButton);
 
         map.setOnClickListener(this);
         tracked_items_list.setOnClickListener(this);
@@ -135,6 +138,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             record_location.setVisibility(View.GONE);
             map.setVisibility(View.GONE);
             tracked_items_list.setVisibility(View.GONE);
+            settings.hide();
         } else {
             login_button.setVisibility(View.GONE);
             logout_button.setVisibility(View.VISIBLE);
@@ -143,6 +147,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             record_location.setVisibility(View.GONE);
             map.setVisibility(View.VISIBLE);
             tracked_items_list.setVisibility(View.VISIBLE);
+            settings.show();
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
