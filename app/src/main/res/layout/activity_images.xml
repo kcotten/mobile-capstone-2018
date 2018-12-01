@@ -41,10 +41,19 @@
         android:gravity="center"
         android:text="Upload" />
 
+    <ProgressBar
+        android:id="@+id/pbar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <ImageView
         android:id="@+id/imageView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:scaleX="fit"
+        android:scaleY="fit"
         app:srcCompat="@android:drawable/ic_menu_camera"
         tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
