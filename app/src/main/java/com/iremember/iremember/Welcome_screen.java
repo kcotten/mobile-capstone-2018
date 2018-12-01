@@ -63,6 +63,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     Button map;
     Button tracked_items_list;
     FloatingActionButton settings;
+    FloatingActionButton userLogout;
 
     // add support for login here, warning is because we only implement a single sign in method
     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -87,6 +88,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         email = findViewById(R.id.email);
         userName = findViewById(R.id.user);
         settings = findViewById(R.id.floatingActionButton);
+        userLogout = findViewById(R.id.floatingActionButton2);
 
         map.setOnClickListener(this);
         tracked_items_list.setOnClickListener(this);
@@ -140,15 +142,17 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             map.setVisibility(View.GONE);
             tracked_items_list.setVisibility(View.GONE);
             settings.hide();
+            userLogout.hide();
         } else {
             login_button.setVisibility(View.GONE);
-            logout_button.setVisibility(View.VISIBLE);
+            logout_button.setVisibility(View.GONE);
             email.setVisibility(View.VISIBLE);
             userName.setVisibility(View.GONE);
             record_location.setVisibility(View.GONE);
             map.setVisibility(View.VISIBLE);
             tracked_items_list.setVisibility(View.VISIBLE);
             settings.show();
+            userLogout.show();
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());

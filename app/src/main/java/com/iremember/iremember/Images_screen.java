@@ -93,7 +93,7 @@ public class Images_screen extends AppCompatActivity {
         mImageView = (ImageView)findViewById(R.id.imageView3);
         mDescription = (EditText)findViewById(R.id.description);
         mNotes = findViewById(R.id.notes);
-        locale = findViewById(R.id.location);
+        //locale = findViewById(R.id.location);
 
         mTakepicture.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
