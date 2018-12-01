@@ -3,6 +3,7 @@ package com.iremember.iremember;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -38,19 +39,15 @@ public class Settings_screen extends AppCompatActivity {
 
         getMode();
 
-        Toast.makeText(this,"Default is Walking",Toast.LENGTH_LONG).show();
+        Toast toast =
+            Toast.makeText(this,"Default is Walking",Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL, 0, 0);
+        toast.show();
 
         mswitch = findViewById(R.id.switch1);
-        //b = mode == "driving";
-        //Log.i(TAG,"Mode: " + mode + ", Boolean: " + b.toString());
-
-        //mswitch.setChecked(b);
 
         mswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                // do something, the isChecked will be
-                // true if the switch is in the On position
                 if(isChecked) {
                     dbRef.setValue("driving");
                 } else {
@@ -70,7 +67,6 @@ public class Settings_screen extends AppCompatActivity {
                     b = (mode.equals("driving"));
                     mswitch.setChecked(b);
                     Log.i(TAG,"Mode: " + mode + ", Boolean: " + b.toString());
-                    //Log.i(TAG, mode);
                 }
             }
 

@@ -175,13 +175,17 @@ public class Map_screen extends FragmentActivity implements
         dbRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                LatLng newLocation = new LatLng(
-                        dataSnapshot.child("location").child("latitude").getValue(Double.class),
-                        dataSnapshot.child("location").child("longitude").getValue(Double.class)
-                );
-                mMap.addMarker(new MarkerOptions()
-                        .position(newLocation)
-                        .title(dataSnapshot.child("description").getValue(String.class)));
+                if(dataSnapshot.exists()) {
+                    LatLng newLocation = new LatLng(
+                            dataSnapshot.child("location").child("latitude").getValue(Double.class),
+                            dataSnapshot.child("location").child("longitude").getValue(Double.class)
+                    );
+                    mMap.addMarker(new MarkerOptions()
+                            .position(newLocation)
+                            .title(dataSnapshot.child("description").getValue(String.class)));
+                } else {
+                    dbRef.removeEventListener(this);
+                }
             }
 
             @Override
@@ -316,17 +320,15 @@ public class Map_screen extends FragmentActivity implements
         LatLng latLng = new LatLng(lat, lng);
         
         // -----------------------------------------------------------------------------------------
-        // laydown marker
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Current Location"));
-
-        // send to firebase
+        // lay down marker
+        mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title("Current Location"));
 
         // the code right here will create unique ids and then save multiple items
         key = dbRef.push().getKey();
         assert key != null;
         dbRef.child(key).child("location").setValue(latLng);
-
-
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));
@@ -352,6 +354,7 @@ public class Map_screen extends FragmentActivity implements
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                dbRef.child(key).removeValue();
                 dialog.cancel();
             }
         });
@@ -417,7 +420,6 @@ public class Map_screen extends FragmentActivity implements
     protected void onPause() {
         super.onPause();
         locationManager.removeUpdates(this);
-
     }
 
     @Override
