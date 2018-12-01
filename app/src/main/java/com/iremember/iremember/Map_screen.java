@@ -67,8 +67,6 @@ import java.util.List;
 
 public class Map_screen extends FragmentActivity implements
         OnMapReadyCallback,
-        GoogleMap.OnMyLocationClickListener,
-        GoogleMap.OnMyLocationButtonClickListener,
         LocationListener {
 
     // constants
@@ -202,8 +200,6 @@ public class Map_screen extends FragmentActivity implements
         });
         // -----------------------------------------------------------------------------------------
 
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
@@ -247,28 +243,6 @@ public class Map_screen extends FragmentActivity implements
             }
         }
 
-    }
-
-    // the my location button in the upper right of the screen
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        /*
-        Log.i(TAG, "onMyLocationClick()");
-        double lat, lng;
-        lat = location.getLatitude();
-        lng = location.getLongitude();
-        Toast.makeText(this, "Current location:\n" + String.valueOf(lat) + " " +
-                String.valueOf(lng), Toast.LENGTH_LONG).show();
-        */
-    }
-
-    @Override
-    public boolean onMyLocationButtonClick() {
-
-        //Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // which is the camera animates to the user's current position
-        return false;
     }
 
     // request permissions
@@ -329,6 +303,7 @@ public class Map_screen extends FragmentActivity implements
         key = dbRef.push().getKey();
         assert key != null;
         dbRef.child(key).child("location").setValue(latLng);
+        dbRef.child(key).child("notes").setValue("");
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));
@@ -424,29 +399,9 @@ public class Map_screen extends FragmentActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        //remove location callback:
-        locationManager.removeUpdates(this);
-
-        //open the map:
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-        Toast.makeText(this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
     }
-
-    /*
-    class PromptRunnable implements Runnable {
-        private String v;
-        void setValue(String inV) {
-            this.v = inV;
-        }
-        String getValue() {
-            return this.v;
-        }
-        public void run() {
-            this.run();
-        }
-    }
-    */
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {

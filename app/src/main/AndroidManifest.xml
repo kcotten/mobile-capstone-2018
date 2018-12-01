@@ -48,7 +48,7 @@
             android:name=".Settings_screen"
             android:parentActivityName=".Welcome_screen"></activity>
         <activity
-            android:name=".Images"
+            android:name=".Images_screen"
             android:parentActivityName=".List_screen" >
         </activity>
     </application>

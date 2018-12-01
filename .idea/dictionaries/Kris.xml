@@ -2,6 +2,10 @@
   <dictionary name="Kris">
     <words>
       <w>firebase</w>
+      <w>imagekey</w>
+      <w>latlng</w>
+      <w>specialkey</w>
+      <w>takepicture</w>
     </words>
   </dictionary>
 </component>
