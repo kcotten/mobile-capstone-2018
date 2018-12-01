@@ -66,6 +66,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     // add support for login here, warning is because we only implement a single sign in method
     List<AuthUI.IdpConfig> providers = Arrays.asList(
+            new AuthUI.IdpConfig.GoogleBuilder().build(),
             new AuthUI.IdpConfig.EmailBuilder().build());
 
     // really busy initialization, could maybe be broken down into helper functions
@@ -217,13 +218,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 });
     }
 
-    /*
-    // toast helper function is we need it
-    private void notifyUser(String message) {
-        Toast.makeText(this, message,
-                Toast.LENGTH_SHORT).show();
-    }
-    */
     // lifecycle methods, originally did some bundle stuff here but most of that code got removed
 
     // Start the firebase authorization listener
@@ -307,7 +301,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     }
 
     public void settings(View view) {
-        Log.i("Floating Action Button", "Settings_screen Launched");
         Intent intent = new Intent(this, Settings_screen.class);
         startActivity(intent);
     }
