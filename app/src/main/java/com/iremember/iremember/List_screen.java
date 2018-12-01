@@ -16,6 +16,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -82,7 +83,7 @@ public class List_screen extends AppCompatActivity implements
     double longitude;
     LatLng latLng;
     private String specialkey;
-    static public String imagekey;
+    static public String imagekey = "";
     private int key;
 
     @Override
@@ -105,6 +106,7 @@ public class List_screen extends AppCompatActivity implements
         dataListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         dataListView.setOnItemClickListener( new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                imagekey = listKeys.get(position);
                 selectedPosition = position; itemSelected = true;
                 deleteButton.setEnabled(true);
             }
@@ -148,7 +150,7 @@ public class List_screen extends AppCompatActivity implements
             searchMode = true;
         } else {
             searchMode = false;
-            findButton.setText("Find");
+            findButton.setText("Search");
             query = dbRef.orderByKey();
         }
 
@@ -224,7 +226,7 @@ public class List_screen extends AppCompatActivity implements
 
             }
 
-            @Override public void onChildRemoved(DataSnapshot dataSnapshot) {
+            @Override public void onChildRemoved(DataSnapshot dataSnapshot) throws IndexOutOfBoundsException {
                 String key = dataSnapshot.getKey();
                 int index = listKeys.indexOf(key);
 
@@ -350,6 +352,31 @@ public class List_screen extends AppCompatActivity implements
                     // permissions are set, therefore...
                 }
             }
+        }
+    }
+
+    public void editEntry(View view) {
+        String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+
+        if (ContextCompat.checkSelfPermission(List_screen.this,
+                permissions[0]) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(List_screen.this,
+                permissions[1]) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(List_screen.this,
+                permissions[2]) == PackageManager.PERMISSION_GRANTED) {
+            if(TextUtils.isEmpty(imagekey)) {
+                Toast toast =
+                        Toast.makeText(this,"Must select an item.",Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
+                return;
+            }
+            Log.i(TAG, imagekey);
+            Intent intent = new Intent(view.getContext(), Images_screen.class);
+            startActivity(intent);
+        } else {
+            ActivityCompat.requestPermissions(List_screen.this, permissions, REQUEST_CODE);
         }
     }
 }

@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.SyncStateContract;
@@ -24,6 +25,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -56,7 +58,8 @@ public class Images_screen extends AppCompatActivity {
     private Button mTakepicture;
     private ImageView mImageView;
     private EditText mDescription;
-    private EditText locale;
+    private EditText latitude;
+    private EditText longitude;
     private EditText mNotes;
     private Uri CameraUri;
     private String key = List_screen.imagekey;
@@ -85,15 +88,14 @@ public class Images_screen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_images);
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        //storage = FirebaseStorage.getInstance();
         cameraRef = storageRef.child("/videos/" + cameraPath + "/userIntro.jpg");;
 
         mTakepicture = (Button)findViewById(R.id.takepicture);
-        mUploadBtn = (Button)findViewById(R.id.upload);
         mImageView = (ImageView)findViewById(R.id.imageView3);
         mDescription = (EditText)findViewById(R.id.description);
         mNotes = findViewById(R.id.notes);
-        //locale = findViewById(R.id.location);
+        latitude = findViewById(R.id.latitude);
+        longitude = findViewById(R.id.longitude);
 
         mTakepicture.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
@@ -106,28 +108,23 @@ public class Images_screen extends AppCompatActivity {
             }
         });
 
-        mUploadBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                uploadImage();
-            }
-        });
 
         startListener();
 
-        download(mImageView);
     }
 
+    /*
     private File getOutputMediaFile(){
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "MyApplication");
         /**Create the storage directory if it does not exist*/
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                return null;
-            }
-        }
-        /**Create a media file name*/
+        //if (! mediaStorageDir.exists()){
+        //    if (! mediaStorageDir.mkdirs()){
+        //        return null;
+        //    }
+        //}
+        ///**Create a media file name*/
+        /*
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
         mediaFile = new File(mediaStorageDir.getPath() + File.separator +
@@ -135,6 +132,7 @@ public class Images_screen extends AppCompatActivity {
 
         return mediaFile;
     }
+    */
 
     private void startListener() {
         dbRef.addValueEventListener(new ValueEventListener() {
@@ -152,7 +150,9 @@ public class Images_screen extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    locale.setText("Latitude: "+String.format("%.2f", lat)+", Longitude: "+String.format("%.2f", lng));
+                    latitude.setText(String.format("%.2f", lat));
+                    longitude.setText(String.format("%.2f", lng));
+
                     mDescription.setText(desc);
                     mNotes.setText(notes);
 
@@ -191,8 +191,8 @@ public class Images_screen extends AppCompatActivity {
 
     public void showPic() throws IOException {
         String s = firebaseImage;
-        Bitmap imageBitmap = decodeFromFirebaseBase64(firebaseImage);
-        File file = new File(String.valueOf(imageBitmap));
+        Bitmap imageBitmap = decodeFromFirebaseBase64(s);
+        //File file = new File(String.valueOf(imageBitmap));
         mImageView.setImageBitmap(imageBitmap);
 
         //Picasso.with(Images_screen.this).load(file).into(mImageView);
@@ -203,7 +203,7 @@ public class Images_screen extends AppCompatActivity {
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
 
-
+    /*
     private void uploadImage() {
         if(CameraUri != null) {
             UploadTask uploadTask = cameraRef.putFile(CameraUri);
@@ -260,15 +260,36 @@ public class Images_screen extends AppCompatActivity {
             Toast.makeText(Images_screen.this, "Failed to create temp file: " + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
-
+    */
+    /*
     @Override
     protected void onPause() {
         super.onPause();
         desc2db = mDescription.getText().toString();
         notes2db = mNotes.getText().toString();
+        lat = Double.parseDouble(latitude.getText().toString());
+        lng = Double.parseDouble(longitude.getText().toString());
+        LatLng latLng = new LatLng(lat,lng);
 
+        dbRef.child("location").setValue(latLng);
         dbRef.child("description").setValue(desc2db);
         dbRef.child("notes").setValue(notes2db);
+    }
+    */
+    public void saveEdits(View view) {
+        desc2db = mDescription.getText().toString();
+        notes2db = mNotes.getText().toString();
+        lat = Double.parseDouble(latitude.getText().toString());
+        lng = Double.parseDouble(longitude.getText().toString());
+        LatLng latLng = new LatLng(lat,lng);
+
+        dbRef.child("location").setValue(latLng);
+        dbRef.child("description").setValue(desc2db);
+        dbRef.child("notes").setValue(notes2db);
+        finishAffinity(this);
+    }
+
+    private void finishAffinity(Images_screen images_screen) {
+        finish();
     }
 }

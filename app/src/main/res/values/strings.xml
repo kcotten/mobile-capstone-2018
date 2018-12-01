@@ -23,5 +23,17 @@
     <string name="walking">Walking</string>
     <string name="driving">Driving</string>
     <string name="splash_screen_icon" />
-    <string name="iremember">Remembers so you dont have to</string>
+    <string name="iremember">Remembers So You Don\'t Have To</string>
+    <string name="textview">TextView</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="notes">Notes</string>
+    <string name="description">Description</string>
+    <string name="item">Item</string>
+    <string name="take_photo">Take photo</string>
+    <string name="upload">Upload</string>
+    <string name="save">Save</string>
+    <string name="take_photo2">Take Photo</string>
+    <string name="search">Search</string>
+    <string name="edit">Edit</string>
 </resources>

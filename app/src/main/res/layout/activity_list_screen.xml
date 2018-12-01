@@ -20,58 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/findBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="34dp"
-        android:layout_marginLeft="34dp"
-        android:layout_marginTop="45dp"
-        android:layout_marginEnd="29dp"
-        android:layout_marginRight="29dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/find"
-        android:onClick="findItems"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/deleteBtn"
-        app:layout_constraintStart_toEndOf="@+id/addBtn"
-        app:layout_constraintTop_toBottomOf="@+id/itemText"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/addBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="26dp"
-        android:layout_marginLeft="26dp"
-        android:layout_marginTop="45dp"
-        android:layout_marginEnd="25dp"
-        android:layout_marginRight="25dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/addBtn"
-        android:onClick="addItem"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/findBtn"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/itemText" />
-
-    <Button
-        android:id="@+id/deleteBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="29dp"
-        android:layout_marginLeft="29dp"
-        android:layout_marginTop="45dp"
-        android:layout_marginEnd="31dp"
-        android:layout_marginRight="31dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/delete"
-        android:onClick="deleteItem"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/findBtn"
-        app:layout_constraintTop_toBottomOf="@+id/itemText" />
-
     <EditText
         android:id="@+id/itemText"
         android:layout_width="0dp"
@@ -79,6 +27,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="110dp"
         android:autofillHints=""
+        android:gravity="center"
         android:hint="@string/editTextHint"
         android:inputType="text"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -86,4 +35,62 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dataListView"
         tools:targetApi="o" />
+
+    <LinearLayout
+        android:layout_width="385dp"
+        android:layout_height="110dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/itemText"
+        app:layout_constraintVertical_bias="0.0">
+
+        <Button
+            android:id="@+id/deleteBtn"
+            style="@android:style/Widget.Material.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:onClick="deleteItem"
+            android:text="@string/delete"
+            tools:layout_editor_absoluteY="339dp" />
+
+        <Button
+            android:id="@+id/addBtn"
+            style="@android:style/Widget.Material.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:onClick="addItem"
+            android:text="@string/addBtn"
+            app:layout_constraintEnd_toStartOf="@+id/findBtn"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="373dp" />
+
+        <Button
+            android:id="@+id/findBtn"
+            style="@android:style/Widget.Material.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:onClick="findItems"
+            android:text="@string/search"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/deleteBtn"
+            app:layout_constraintHorizontal_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/button"
+            style="@android:style/Widget.Material.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:onClick="editEntry"
+            android:text="@string/edit"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/deleteBtn" />
+
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>
