@@ -198,6 +198,7 @@ public class List_screen extends AppCompatActivity implements
         adapter.notifyDataSetChanged();
 
         dbRef.child(specialkey).child("notes").setValue("");
+        dbRef.child(specialkey).child("image").setValue("");
         dbRef.child(specialkey).child("location").setValue(latLng);
     }
 

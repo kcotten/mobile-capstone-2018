@@ -194,7 +194,7 @@ public class Images_screen extends AppCompatActivity {
         Bitmap imageBitmap = decodeFromFirebaseBase64(firebaseImage);
         File file = new File(String.valueOf(imageBitmap));
         mImageView.setImageBitmap(imageBitmap);
-        
+
         //Picasso.with(Images_screen.this).load(file).into(mImageView);
     }
 

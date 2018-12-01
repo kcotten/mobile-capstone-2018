@@ -304,6 +304,7 @@ public class Map_screen extends FragmentActivity implements
         assert key != null;
         dbRef.child(key).child("location").setValue(latLng);
         dbRef.child(key).child("notes").setValue("");
+        dbRef.child(key).child("image").setValue("");
 
         Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
                 String.valueOf(lng));

@@ -52,8 +52,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        android:scaleX="fit"
-        android:scaleY="fit"
         app:srcCompat="@android:drawable/ic_menu_camera"
         tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
