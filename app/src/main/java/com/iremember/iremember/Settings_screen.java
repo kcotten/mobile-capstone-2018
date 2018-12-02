@@ -23,11 +23,8 @@ public class Settings_screen extends AppCompatActivity {
     Switch mswitch;
     String mode = "";
     Boolean b;
-    // our firebase user
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     String path = "users/" + currentUser.getUid() + "/setting";
-
-    // our firebase realtimedb
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
     private DatabaseReference dbRef2 = db.getReference("users/" + currentUser.getUid());
@@ -40,7 +37,7 @@ public class Settings_screen extends AppCompatActivity {
         getMode();
 
         Toast toast =
-            Toast.makeText(this,"Default is Walking",Toast.LENGTH_LONG);
+            Toast.makeText(this,"Default is Walking",Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
 

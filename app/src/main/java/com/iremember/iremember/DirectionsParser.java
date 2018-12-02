@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class DirectionsJSONParser {
+class DirectionsParser {
 
     public List<List<HashMap<String,String>>> parse(JSONObject jObject){
 

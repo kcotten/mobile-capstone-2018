@@ -292,7 +292,7 @@ public class Map_screen extends FragmentActivity implements
         double lat = mLastLocation.getLatitude();
         double lng = mLastLocation.getLongitude();
         LatLng latLng = new LatLng(lat, lng);
-        
+
         // -----------------------------------------------------------------------------------------
         // lay down marker
         mMap.addMarker(new MarkerOptions()
@@ -522,7 +522,7 @@ public class Map_screen extends FragmentActivity implements
 
             try{
                 jObject = new JSONObject(jsonData[0]);
-                DirectionsJSONParser parser = new DirectionsJSONParser();
+                DirectionsParser parser = new DirectionsParser();
 
                 // Starts parsing data
                 routes = parser.parse(jObject);
