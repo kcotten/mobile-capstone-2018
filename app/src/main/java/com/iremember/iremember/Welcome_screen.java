@@ -57,6 +57,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     // UI elements
     TextView email;
     TextView userName;
+    TextView welcome;
     Button login_button;
     Button logout_button;
     Button record_location;
@@ -89,7 +90,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         userName = findViewById(R.id.user);
         settings = findViewById(R.id.floatingActionButton);
         userLogout = findViewById(R.id.floatingActionButton2);
-
+        welcome = findViewById(R.id.welcomeMessage);
         map.setOnClickListener(this);
         tracked_items_list.setOnClickListener(this);
         record_location.setOnClickListener(this);
@@ -143,6 +144,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             tracked_items_list.setVisibility(View.GONE);
             settings.hide();
             userLogout.hide();
+            welcome.setText("Welcome");
         } else {
             login_button.setVisibility(View.GONE);
             logout_button.setVisibility(View.GONE);
@@ -156,8 +158,7 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
             userName.setText(user.getDisplayName());
             email.setText(user.getEmail());
-            // load profile image? have to follow a whole process
-            // Picasso.with(ActivityFUIAuth.this).load(user.getPhotoUrl()).into(imgProfile);
+            welcome.setText("Hello!");
         }
     }
 

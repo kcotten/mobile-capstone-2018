@@ -346,16 +346,11 @@ public class Map_screen extends FragmentActivity implements
             Log.i(TAG, "Returning to map");
             return;
         }
-        // code here
         mLastLocation = getLastKnownLocation();
 
         double lat = mLastLocation.getLatitude();
         double lng = mLastLocation.getLongitude();
         LatLng latLng = new LatLng(lat, lng);
-
-        // Directions to marker_latlng
-        Log.i(TAG,"User: " + latLng.toString());
-        Log.i(TAG,"Marker: " + marker_latlng.toString());
 
         String url = getDirectionsUrl(latLng, marker_latlng);
 
@@ -367,13 +362,10 @@ public class Map_screen extends FragmentActivity implements
         Log.i(TAG, "generateDirections()");
     }
 
-    // manually find the best location provider, auto was not working
     private Location getLastKnownLocation() {
         List<String> providers = locationManager.getProviders(true);
         Location bestLocation = null;
         for (String provider : providers) {
-            // this is not an error and is safe to ignore as far as I, kris, knows
-            // all the documentation states that this function is guaranteed to be non-null
             @SuppressLint("MissingPermission") Location l = locationManager.getLastKnownLocation(provider);
             Log.d("last loc, p: %s, l: %s", provider + " " + l);
 
@@ -421,21 +413,10 @@ public class Map_screen extends FragmentActivity implements
 
     private String getDirectionsUrl(LatLng origin,LatLng dest){
 
-        // Origin of route
         String str_origin = "origin="+origin.latitude+","+origin.longitude;
-
-        // Destination of route
         String str_dest = "destination="+dest.latitude+","+dest.longitude;
-
-        // Sensor enabled
-        //String sensor = "sensor=false";
-
         String str_mode = "mode="+mode;
-
-        // Building the parameters to the web service +"&"+sensor
         String parameters = str_origin+"&"+str_dest+"&"+str_mode;
-
-        // Output format
         String output = "json";
 
         String url = "https://maps.googleapis.com/maps/api/directions/"+output+"?"+parameters+"&key="+API_KEY;
@@ -451,11 +432,7 @@ public class Map_screen extends FragmentActivity implements
             URL url = new URL(strUrl);
 
             urlConnection = (HttpURLConnection) url.openConnection();
-
-            // Connecting to url
             urlConnection.connect();
-
-            // Reading data from url
             iStream = urlConnection.getInputStream();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
@@ -480,18 +457,14 @@ public class Map_screen extends FragmentActivity implements
         return data;
     }
 
-    // Fetches data from url passed
     private class DownloadTask extends AsyncTask<String, Void, String> {
 
-        // Downloading data in non-ui thread
         @Override
         protected String doInBackground(String... url) {
 
-            // For storing data from web service
             String data = "";
 
             try{
-                // Fetching the data from web service
                 data = downloadUrl(url[0]);
             }catch(Exception e){
                 Log.d("Background Task",e.toString());
@@ -499,15 +472,11 @@ public class Map_screen extends FragmentActivity implements
             return data;
         }
 
-        // Executes in UI thread, after the execution of
-        // doInBackground()
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
             ParserTask parserTask = new ParserTask();
-
-            // Invokes the thread for parsing the JSON data
             parserTask.execute(result);
         }
     }
@@ -537,14 +506,10 @@ public class Map_screen extends FragmentActivity implements
 
             ArrayList<LatLng> points = new ArrayList<LatLng>();
             PolylineOptions lineOptions = new PolylineOptions();
-            MarkerOptions markerOptions = new MarkerOptions();
 
-            // Traversing through all the routes
-            Log.i(TAG, String.valueOf(result.size()));
             for (int i = 0; i < result.size(); i++) {
                 List<HashMap<String, String>> path = result.get(i);
 
-                Log.i(TAG, String.valueOf(path.size()));
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
 
@@ -555,7 +520,6 @@ public class Map_screen extends FragmentActivity implements
                     points.add(position);
                 }
 
-                // Adding all the points in the route to LineOptions
                 lineOptions.addAll(points);
                 lineOptions.width(16);
                 lineOptions.color(Color.RED);
@@ -571,8 +535,6 @@ public class Map_screen extends FragmentActivity implements
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                // Drawing polyline in the Google Map for the i-th route
-                Log.i(TAG, String.valueOf(lineOptions));
                 line = mMap.addPolyline(lineOptions);
             }
         });
@@ -580,8 +542,6 @@ public class Map_screen extends FragmentActivity implements
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 }
