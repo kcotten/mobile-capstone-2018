@@ -68,7 +68,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
     // add support for login here, warning is because we only implement a single sign in method
     List<AuthUI.IdpConfig> providers = Arrays.asList(
-            new AuthUI.IdpConfig.GoogleBuilder().build(),
             new AuthUI.IdpConfig.EmailBuilder().build());
 
     // really busy initialization, could maybe be broken down into helper functions
