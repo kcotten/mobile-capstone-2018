@@ -24,6 +24,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -114,11 +115,17 @@ public class Map_screen extends FragmentActivity implements
     private DatabaseReference dbRef2 = db.getReference("users/" + currentUser.getUid());
 
     String mode= "";
+    Button recordLocBtn;
+    Button directionsBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_screen);
+        recordLocBtn = findViewById(R.id.record);
+        directionsBtn = findViewById(R.id.directions);
+        recordLocBtn.getBackground().setAlpha(128);
+        directionsBtn.getBackground().setAlpha(128);
 
         // get a local instance of the location manager, this is critical
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -167,7 +174,7 @@ public class Map_screen extends FragmentActivity implements
         mapSettings = mMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
-        mapSettings.setMapToolbarEnabled(false);
+        mapSettings.setMapToolbarEnabled(true); // forward to directions
 
         // -----------------------------------------------------------------------------------------
         dbRef.addChildEventListener(new ChildEventListener() {

@@ -54,6 +54,7 @@
             android:layout_weight="1"
             android:onClick="deleteItem"
             android:text="@string/delete"
+            android:textSize="17sp"
             tools:layout_editor_absoluteY="339dp" />
 
         <Button
@@ -64,6 +65,7 @@
             android:layout_weight="1"
             android:onClick="addItem"
             android:text="@string/addBtn"
+            android:textSize="17sp"
             app:layout_constraintEnd_toStartOf="@+id/findBtn"
             app:layout_constraintStart_toStartOf="parent"
             tools:layout_editor_absoluteY="373dp" />
@@ -76,6 +78,7 @@
             android:layout_weight="1"
             android:onClick="findItems"
             android:text="@string/search"
+            android:textSize="17sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/deleteBtn"
             app:layout_constraintHorizontal_chainStyle="spread_inside" />
@@ -88,6 +91,7 @@
             android:layout_weight="1"
             android:onClick="editEntry"
             android:text="@string/edit"
+            android:textSize="17sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/deleteBtn" />

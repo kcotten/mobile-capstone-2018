@@ -36,4 +36,5 @@
     <string name="take_photo2">Take Photo</string>
     <string name="search">Search</string>
     <string name="edit">Edit</string>
+    <string name="path">Path</string>
 </resources>
