@@ -128,8 +128,8 @@ public class Images_screen extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    latitude.setText(String.format("%.2f", lat));
-                    longitude.setText(String.format("%.2f", lng));
+                    latitude.setText(String.format("%.5f", lat));
+                    longitude.setText(String.format("%.5f", lng));
 
                     mDescription.setText(desc);
                     mNotes.setText(notes);

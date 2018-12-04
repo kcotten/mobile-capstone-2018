@@ -303,28 +303,6 @@ public class Map_screen extends FragmentActivity implements
                     LOCATION_REQUEST_CODE);
             return;
         }
-        mLastLocation = getLastKnownLocation();
-
-        // change the firebase to accept a LatLng instead of a location
-        double lat = mLastLocation.getLatitude();
-        double lng = mLastLocation.getLongitude();
-        LatLng latLng = new LatLng(lat, lng);
-
-        // -----------------------------------------------------------------------------------------
-        // lay down marker
-        mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .title("Current Location"));
-
-        // the code right here will create unique ids and then save multiple items
-        key = dbRef.push().getKey();
-        assert key != null;
-        dbRef.child(key).child("location").setValue(latLng);
-        dbRef.child(key).child("notes").setValue("");
-        dbRef.child(key).child("image").setValue("");
-
-        Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
-                String.valueOf(lng));
     }
 
     private void getMarkerName() {
@@ -341,7 +319,28 @@ public class Map_screen extends FragmentActivity implements
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 locationName = input.getText().toString();
+                key = dbRef.push().getKey();
+                assert key != null;
                 dbRef.child(key).child("description").setValue(locationName);
+                mLastLocation = getLastKnownLocation();
+
+                double lat = mLastLocation.getLatitude();
+                double lng = mLastLocation.getLongitude();
+                LatLng latLng = new LatLng(lat, lng);
+
+                // -----------------------------------------------------------------------------------------
+                // lay down marker
+                mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title(locationName));
+
+                // the code right here will create unique ids and then save multiple items
+                dbRef.child(key).child("location").setValue(latLng);
+                dbRef.child(key).child("notes").setValue("");
+                dbRef.child(key).child("image").setValue("");
+
+                Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
+                        String.valueOf(lng));
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
