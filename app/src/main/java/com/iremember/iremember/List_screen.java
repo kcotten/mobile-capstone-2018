@@ -74,6 +74,8 @@ public class List_screen extends AppCompatActivity implements
     ArrayList<String> listKeys = new ArrayList<>();
     ArrayAdapter<String> adapter;
 
+    ChildEventListener childListener;
+
     // need a location when an item is created
     private Location mLastLocation;
     private LocationManager locationManager;
@@ -213,7 +215,7 @@ public class List_screen extends AppCompatActivity implements
 
     // listen for changes in the list
     private void addChildEventListener() {
-        ChildEventListener childListener = new ChildEventListener() {
+        childListener = new ChildEventListener() {
             @Override public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
                 adapter.add(dataSnapshot.child("description").getValue(String.class));
                 listKeys.add(dataSnapshot.getKey());
@@ -272,6 +274,7 @@ public class List_screen extends AppCompatActivity implements
     protected void onPause() {
         super.onPause();
         locationManager.removeUpdates(this);
+        dbRef.removeEventListener(childListener);
     }
 
     @Override
