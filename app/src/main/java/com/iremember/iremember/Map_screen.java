@@ -22,6 +22,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -113,6 +114,7 @@ public class Map_screen extends FragmentActivity implements
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
     private DatabaseReference dbRef2 = db.getReference("users/" + currentUser.getUid());
+    ChildEventListener childref;
 
     String mode= "";
     Button recordLocBtn;
@@ -151,7 +153,7 @@ public class Map_screen extends FragmentActivity implements
                 if(mode.equals("")) {
                     mode = dataSnapshot.child("setting").getValue(String.class);
                     assert mode != null;
-                    Log.i(TAG, mode);
+                    //Log.i(TAG, mode);
                 }
             }
 
@@ -177,17 +179,25 @@ public class Map_screen extends FragmentActivity implements
         mapSettings.setMapToolbarEnabled(true); // forward to directions
 
         // -----------------------------------------------------------------------------------------
-        dbRef.addChildEventListener(new ChildEventListener() {
+        childref = dbRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if(dataSnapshot.exists()) {
-                    LatLng newLocation = new LatLng(
-                            dataSnapshot.child("location").child("latitude").getValue(Double.class),
-                            dataSnapshot.child("location").child("longitude").getValue(Double.class)
-                    );
-                    mMap.addMarker(new MarkerOptions()
-                            .position(newLocation)
-                            .title(dataSnapshot.child("description").getValue(String.class)));
+                    double tlat = 0;
+                    double tlng = 0;
+                    if(dataSnapshot.child("location").child("latitude").getValue(Double.class) != null) {
+                        tlat = dataSnapshot.child("location").child("latitude").getValue(Double.class);
+                    }
+                    if(dataSnapshot.child("location").child("longitude").getValue(Double.class) != null) {
+                        tlng = dataSnapshot.child("location").child("longitude").getValue(Double.class);
+                    }
+                    if(tlat != 0 && tlng != 0) {
+                        LatLng newLocation = new LatLng(tlat, tlng);
+                        mMap.addMarker(new MarkerOptions()
+                                .position(newLocation)
+                                .title(dataSnapshot.child("description").getValue(String.class)));
+                    }
+
                 } else {
                     dbRef.removeEventListener(this);
                 }
@@ -349,8 +359,10 @@ public class Map_screen extends FragmentActivity implements
     // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
         if(marker_latlng == null) {
-            Toast.makeText(this,"Must have destination marker selected.",Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "Returning to map");
+            Toast toast =
+                    Toast.makeText(this,"Must have destination marker selected.",Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL, 0, 0);
+            toast.show();
             return;
         }
         mLastLocation = getLastKnownLocation();
@@ -395,6 +407,7 @@ public class Map_screen extends FragmentActivity implements
     protected void onPause() {
         super.onPause();
         locationManager.removeUpdates(this);
+        dbRef.removeEventListener(childref);
     }
 
     @Override
