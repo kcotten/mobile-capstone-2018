@@ -156,7 +156,8 @@ public class List_screen extends AppCompatActivity implements
 
         if (itemSelected) {
             dataListView.setItemChecked(selectedPosition, false);
-            itemSelected = false; deleteButton.setEnabled(false);
+            itemSelected = false;
+            deleteButton.setEnabled(false);
         }
 
         query.addListenerForSingleValueEvent(queryValueListener);

@@ -148,7 +148,7 @@ public class Map_screen extends FragmentActivity implements
         dbRef2.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(mode == "") {
+                if(mode.equals("")) {
                     mode = dataSnapshot.child("setting").getValue(String.class);
                     assert mode != null;
                     Log.i(TAG, mode);
