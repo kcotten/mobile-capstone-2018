@@ -46,13 +46,10 @@ public class Images_screen extends AppCompatActivity {
     private Uri CameraUri;
     private String key = List_screen.imagekey;
     File file;
-
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     String path = "users/" + currentUser.getUid() + "/items/" + key + "/";
-
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
-
     String notes, desc;
     String notes2db, desc2db;
     String firebaseImage;
@@ -64,24 +61,22 @@ public class Images_screen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_images);
-
         mTakepicture = findViewById(R.id.takepicture);
         mImageView = findViewById(R.id.imageView3);
         mDescription = findViewById(R.id.description);
         mNotes = findViewById(R.id.notes);
         latitude = findViewById(R.id.latitude);
         longitude = findViewById(R.id.longitude);
-
         mTakepicture.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
-                dispatchTakePictureIntent();
+                takePic();
             }
         });
         startListener();
 
     }
 
-    private File createImageFile() throws IOException {
+    private File createFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -94,12 +89,12 @@ public class Images_screen extends AppCompatActivity {
         return image;
     }
 
-    private void dispatchTakePictureIntent() {
+    private void takePic() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             file = null;
             try {
-                file = createImageFile();
+                file = createFile();
             } catch (IOException ex) {
             }
             if (file != null) {
@@ -117,20 +112,14 @@ public class Images_screen extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()) {
-                    //Log.i(TAG, String.valueOf(dataSnapshot.child("location").child("latitude").getValue(Double.class)));
                     lat = dataSnapshot.child("location").child("latitude").getValue(Double.class);
                     lng = dataSnapshot.child("location").child("longitude").getValue(Double.class);
                     desc = dataSnapshot.child("description").getValue(String.class);
                     notes = dataSnapshot.child("notes").getValue(String.class);
                     firebaseImage = dataSnapshot.child("image").getValue(String.class);
-                    try {
-                        showPic();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    showPic();
                     latitude.setText(String.format("%.5f", lat));
                     longitude.setText(String.format("%.5f", lng));
-
                     mDescription.setText(desc);
                     mNotes.setText(notes);
 
@@ -164,19 +153,19 @@ public class Images_screen extends AppCompatActivity {
     }
 
     public void encodeBitmapAndSaveToFirebase(Bitmap bitmap) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        String imageEncoded = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+        ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, bStream);
+        String imageEncoded = Base64.encodeToString(bStream.toByteArray(), Base64.DEFAULT);
         dbRef.child("image").setValue(imageEncoded);
     }
 
-    public void showPic() throws IOException {
+    public void showPic() {
         String s = firebaseImage;
         Bitmap imageBitmap = decodeFromFirebaseBase64(s);
         mImageView.setImageBitmap(imageBitmap);
     }
 
-    public static Bitmap decodeFromFirebaseBase64(String image) throws IOException {
+    public static Bitmap decodeFromFirebaseBase64(String image) {
         byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
@@ -187,7 +176,6 @@ public class Images_screen extends AppCompatActivity {
         lat = Double.parseDouble(latitude.getText().toString());
         lng = Double.parseDouble(longitude.getText().toString());
         LatLng latLng = new LatLng(lat,lng);
-
         dbRef.child("location").setValue(latLng);
         dbRef.child("description").setValue(desc2db);
         dbRef.child("notes").setValue(notes2db);

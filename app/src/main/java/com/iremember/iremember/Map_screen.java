@@ -52,8 +52,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -71,18 +69,15 @@ public class Map_screen extends FragmentActivity implements
         OnMapReadyCallback,
         LocationListener {
 
-    // constants
     private static final String TAG = "Map_screen";
     private static final int LOCATION_REQUEST_CODE = 101;
     private static final float DEFAULT_ZOOM = 13;
     public static final int PATTERN_DASH_LENGTH_PX = 20;
     public static final int PATTERN_GAP_LENGTH_PX = 20;
-    public static final PatternItem DOT = new Dot();
     public static final PatternItem DASH = new Dash(PATTERN_DASH_LENGTH_PX);
     public static final PatternItem GAP = new Gap(PATTERN_GAP_LENGTH_PX);
     public static final List<PatternItem> PATTERN_POLYGON_ALPHA = Arrays.asList(GAP, DASH);
 
-    // instantiate a local map object, location, and location manager
     public GoogleMap mMap;
     private Location mLastLocation;
     private LocationManager locationManager;
@@ -96,21 +91,15 @@ public class Map_screen extends FragmentActivity implements
     double marker_longitude;
 
     LatLng marker_latlng;
-
     Polyline line;
 
     private String locationName = "";
     private String key = "";
     private String API_KEY = "AIzaSyA1xDIXPZDyoF8vFStlA89kAv0eXdbp8NQ";
 
-    // bool to help us identify whether permissions are granted, not currently in use
-    // private boolean mLocationPermissionGranted;
-
-    // our firebase user
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     String path = "users/" + currentUser.getUid() + "/items";
 
-    // our firebase realtimedb
     private FirebaseDatabase db = FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
     private DatabaseReference dbRef2 = db.getReference("users/" + currentUser.getUid());
@@ -128,22 +117,14 @@ public class Map_screen extends FragmentActivity implements
         directionsBtn = findViewById(R.id.directions);
         recordLocBtn.getBackground().setAlpha(128);
         directionsBtn.getBackground().setAlpha(128);
-
-        // get a local instance of the location manager, this is critical
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-        // this may or may not be needed due to the same call in request permissions?
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
         getMode();
-        //mode = Welcome_screen.mode;
-
-        // test function, is the provider even enabled?
-        // boolean test = locationManager.isProviderEnabled(locationManager.NETWORK_PROVIDER);
-        Log.i(TAG, "onCreate() " /*+ String.valueOf(test)*/);
     }
 
     private void getMode() {
@@ -153,7 +134,6 @@ public class Map_screen extends FragmentActivity implements
                 if(mode.equals("")) {
                     mode = dataSnapshot.child("setting").getValue(String.class);
                     assert mode != null;
-                    //Log.i(TAG, mode);
                 }
             }
 
@@ -164,20 +144,14 @@ public class Map_screen extends FragmentActivity implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.i(TAG, "onMapReady()");
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
-        // Get the location
         getLocation(googleMap);
-
-        // get hold of the settings for the map and then set them
         UiSettings mapSettings;
         mapSettings = mMap.getUiSettings();
         mapSettings.setZoomControlsEnabled(true);
         mapSettings.setCompassEnabled(true);
-        mapSettings.setMapToolbarEnabled(true); // forward to directions
-
+        mapSettings.setMapToolbarEnabled(true);
         // -----------------------------------------------------------------------------------------
         childref = dbRef.addChildEventListener(new ChildEventListener() {
             @Override
@@ -216,7 +190,6 @@ public class Map_screen extends FragmentActivity implements
             public void onCancelled(DatabaseError databaseError) {}
         });
         // -----------------------------------------------------------------------------------------
-
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
@@ -224,24 +197,19 @@ public class Map_screen extends FragmentActivity implements
                 marker_longitude = marker.getPosition().longitude;
 
                 marker_latlng = new LatLng(marker_latitude, marker_longitude);
-                //Log.i(TAG,marker_latlng.toString());
                 return false;
             }
         });
     }
 
-    // find the location
     public void getLocation(GoogleMap mMap) {
         locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
         criteria = new Criteria();
-        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
-
+        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
         if (mMap != null) {
             int permission = ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION);
             if (permission == PackageManager.PERMISSION_GRANTED) {
-                // permission has been granted so begin setup for the map
-                // mLocationPermissionGranted = true;
                 mMap.setMyLocationEnabled(true);
                 mLastLocation = getLastKnownLocation();
                 if (mLastLocation != null) {
@@ -250,9 +218,8 @@ public class Map_screen extends FragmentActivity implements
                     LatLng latLng = new LatLng(latitude, longitude);
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM));
                 } else {
-                    locationManager.requestLocationUpdates(bestProvider, 1000, 0, (LocationListener) this);
+                    locationManager.requestLocationUpdates(bestProvider, 1000, 0,  this);
                 }
-
             } else {
                 requestPermission(
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -262,14 +229,12 @@ public class Map_screen extends FragmentActivity implements
 
     }
 
-    // request permissions
     protected void requestPermission(String permissionType, int requestCode) {
         ActivityCompat.requestPermissions(this,
                 new String[]{permissionType}, requestCode
         );
     }
 
-    // after the user is done interacting with the activity, handle the results
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -281,7 +246,6 @@ public class Map_screen extends FragmentActivity implements
                             "Unable to show location - permission required",
                             Toast.LENGTH_LONG).show();
                 } else {
-                    // permissions are set, therefore...
                     SupportMapFragment mapFragment =
                             (SupportMapFragment) getSupportFragmentManager()
                                     .findFragmentById(R.id.map);
@@ -292,11 +256,8 @@ public class Map_screen extends FragmentActivity implements
         }
     }
 
-    // save a location to the firebase, may also want to add a pin
     public void recordLocation(View view) {
         getMarkerName();
-        // String locProv;
-        // check for permissions per the IDE even though permissions are guaranteed to be set
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -310,11 +271,8 @@ public class Map_screen extends FragmentActivity implements
         builder.setTitle("Description");
 
         final EditText input = new EditText(this);
-        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
-
-        // Set up the buttons
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -327,20 +285,12 @@ public class Map_screen extends FragmentActivity implements
                 double lat = mLastLocation.getLatitude();
                 double lng = mLastLocation.getLongitude();
                 LatLng latLng = new LatLng(lat, lng);
-
-                // -----------------------------------------------------------------------------------------
-                // lay down marker
                 mMap.addMarker(new MarkerOptions()
                         .position(latLng)
                         .title(locationName));
-
-                // the code right here will create unique ids and then save multiple items
                 dbRef.child(key).child("location").setValue(latLng);
                 dbRef.child(key).child("notes").setValue("");
                 dbRef.child(key).child("image").setValue("");
-
-                Log.i(TAG, "recordLocation()" + String.valueOf(lat) + " " +
-                        String.valueOf(lng));
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -354,8 +304,6 @@ public class Map_screen extends FragmentActivity implements
         builder.show();
     }
 
-
-    // here, at time 2, generate the directions back to the saved location
     public void generateDirections(View view) {
         if(marker_latlng == null) {
             Toast toast =
@@ -365,19 +313,12 @@ public class Map_screen extends FragmentActivity implements
             return;
         }
         mLastLocation = getLastKnownLocation();
-
         double lat = mLastLocation.getLatitude();
         double lng = mLastLocation.getLongitude();
         LatLng latLng = new LatLng(lat, lng);
-
         String url = getDirectionsUrl(latLng, marker_latlng);
-
         DownloadTask downloadTask = new DownloadTask();
-
         downloadTask.execute(url);
-
-
-        Log.i(TAG, "generateDirections()");
     }
 
     private Location getLastKnownLocation() {
@@ -385,8 +326,6 @@ public class Map_screen extends FragmentActivity implements
         Location bestLocation = null;
         for (String provider : providers) {
             @SuppressLint("MissingPermission") Location l = locationManager.getLastKnownLocation(provider);
-            Log.d("last loc, p: %s, l: %s", provider + " " + l);
-
             if (l == null) {
                 continue;
             }
@@ -431,13 +370,11 @@ public class Map_screen extends FragmentActivity implements
     }
 
     private String getDirectionsUrl(LatLng origin,LatLng dest){
-
         String str_origin = "origin="+origin.latitude+","+origin.longitude;
         String str_dest = "destination="+dest.latitude+","+dest.longitude;
         String str_mode = "mode="+mode;
         String parameters = str_origin+"&"+str_dest+"&"+str_mode;
         String output = "json";
-
         String url = "https://maps.googleapis.com/maps/api/directions/"+output+"?"+parameters+"&key="+API_KEY;
         Log.i(TAG,url);
         return url;
@@ -468,7 +405,7 @@ public class Map_screen extends FragmentActivity implements
             br.close();
 
         }catch(Exception e){
-            Log.d(TAG, e.toString());
+
         }finally{
             iStream.close();
             urlConnection.disconnect();
@@ -477,16 +414,13 @@ public class Map_screen extends FragmentActivity implements
     }
 
     private class DownloadTask extends AsyncTask<String, Void, String> {
-
         @Override
         protected String doInBackground(String... url) {
-
             String data = "";
-
             try{
                 data = downloadUrl(url[0]);
             }catch(Exception e){
-                Log.d("Background Task",e.toString());
+
             }
             return data;
         }
@@ -494,25 +428,19 @@ public class Map_screen extends FragmentActivity implements
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-
             ParserTask parserTask = new ParserTask();
             parserTask.execute(result);
         }
     }
 
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String,String>>>> {
-
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
-
             JSONObject jObject;
             List<List<HashMap<String, String>>> routes = null;
-
             try{
                 jObject = new JSONObject(jsonData[0]);
                 DirectionsParser parser = new DirectionsParser();
-
-                // Starts parsing data
                 routes = parser.parse(jObject);
             }catch(Exception e){
                 e.printStackTrace();
@@ -522,23 +450,17 @@ public class Map_screen extends FragmentActivity implements
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> result) {
-
             ArrayList<LatLng> points = new ArrayList<LatLng>();
             PolylineOptions lineOptions = new PolylineOptions();
-
             for (int i = 0; i < result.size(); i++) {
                 List<HashMap<String, String>> path = result.get(i);
-
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
-
                     double lat = Double.parseDouble(point.get("lat"));
                     double lng = Double.parseDouble(point.get("lng"));
                     LatLng position = new LatLng(lat, lng);
-
                     points.add(position);
                 }
-
                 lineOptions.addAll(points);
                 lineOptions.width(16);
                 lineOptions.color(Color.RED);
@@ -546,7 +468,6 @@ public class Map_screen extends FragmentActivity implements
                     lineOptions.pattern(PATTERN_POLYGON_ALPHA);
             }
             addLinesToMap(lineOptions);
-
         }
     }
 

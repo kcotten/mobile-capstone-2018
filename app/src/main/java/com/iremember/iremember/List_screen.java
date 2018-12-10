@@ -45,38 +45,26 @@ import java.util.List;
 
 public class List_screen extends AppCompatActivity implements
         LocationListener {
-    // constants
     private static final int REQUEST_CODE = 1;
     private static final String TAG = "List_screen";
     private static final int LOCATION_REQUEST_CODE = 101;
     private static final float DEFAULT_ZOOM = 13;
-
-    // UI elements
     private ListView dataListView;
     private EditText itemText;
     private Button findButton;
     private Button deleteButton;
     private Boolean searchMode = false;
     private Boolean itemSelected = false;
-    // iterator
     private int selectedPosition = 0;
 
-    // firebase User path for storage
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     String path = "users/" + (currentUser != null ? currentUser.getUid() : null) + "/items";
-
-    // get access to the firebase at path
     private FirebaseDatabase db= FirebaseDatabase.getInstance();
     private DatabaseReference dbRef = db.getReference(path);
-
-    // the list!
     ArrayList<String> listItems = new ArrayList<>();
     ArrayList<String> listKeys = new ArrayList<>();
     ArrayAdapter<String> adapter;
-
     ChildEventListener childListener;
-
-    // need a location when an item is created
     private Location mLastLocation;
     private LocationManager locationManager;
     public Criteria criteria;
@@ -94,58 +82,16 @@ public class List_screen extends AppCompatActivity implements
         setContentView(R.layout.activity_list_screen);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         getLocation();
-
-        Log.i(TAG, path);
-
         dataListView = findViewById(R.id.dataListView);
         itemText = findViewById(R.id.itemText);
         findButton = findViewById(R.id.findBtn);
         deleteButton = findViewById(R.id.deleteBtn);
         deleteButton.setEnabled(false);
-
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_single_choice, listItems);
-        dataListView.setAdapter(adapter);
-        dataListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        dataListView.setOnItemClickListener( new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                imagekey = listKeys.get(position);
-                selectedPosition = position; itemSelected = true;
-                deleteButton.setEnabled(true);
-            }
-        });
-
-        dataListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
-
-                if (ContextCompat.checkSelfPermission(List_screen.this,
-                        permissions[0]) == PackageManager.PERMISSION_GRANTED
-                        && ContextCompat.checkSelfPermission(List_screen.this,
-                        permissions[1]) == PackageManager.PERMISSION_GRANTED
-                        && ContextCompat.checkSelfPermission(List_screen.this,
-                        permissions[2]) == PackageManager.PERMISSION_GRANTED) {
-                    imagekey = listKeys.get(position);
-                    Log.i(TAG, imagekey);
-                    Intent intent = new Intent(view.getContext(), Images_screen.class);
-                    startActivity(intent);
-                } else {
-                    ActivityCompat.requestPermissions(List_screen.this, permissions, REQUEST_CODE);
-                }
-                return false;
-            }
-
-        });
-
-
     }
 
-    // search for items in the list
     @SuppressLint("SetTextI18n")
     public void findItems(View view) {
         Query query;
-
         if (!searchMode) {
             findButton.setText("Clear");
             query = dbRef.orderByChild("description").equalTo(itemText.getText().toString());
@@ -155,17 +101,14 @@ public class List_screen extends AppCompatActivity implements
             findButton.setText("Search");
             query = dbRef.orderByKey();
         }
-
         if (itemSelected) {
             dataListView.setItemChecked(selectedPosition, false);
             itemSelected = false;
             deleteButton.setEnabled(false);
         }
-
         query.addListenerForSingleValueEvent(queryValueListener);
     }
 
-    // here we listen for search in the realtimeDB
     ValueEventListener queryValueListener = new ValueEventListener() {
         @Override public void onDataChange(DataSnapshot dataSnapshot) {
             Iterable<DataSnapshot> snapshotIterator = dataSnapshot.getChildren();
@@ -186,7 +129,6 @@ public class List_screen extends AppCompatActivity implements
         }
     };
 
-    // add an item to the list
     public void addItem(View view) {
         String item = itemText.getText().toString();
         latLng = new LatLng(latitude, longitude);
@@ -197,23 +139,18 @@ public class List_screen extends AppCompatActivity implements
         specialkey = dbRef.push().getKey();
         itemText.setText("");
         assert specialkey != null;
-
         dbRef.child(specialkey).child("description").setValue(item);
-
         adapter.notifyDataSetChanged();
-
         dbRef.child(specialkey).child("notes").setValue("");
         dbRef.child(specialkey).child("image").setValue("");
         dbRef.child(specialkey).child("location").setValue(latLng);
     }
 
-    // delete an item from the list
     public void deleteItem(View view) {
         dataListView.setItemChecked(selectedPosition, false);
         dbRef.child(listKeys.get(selectedPosition)).removeValue();
     }
 
-    // listen for changes in the list
     private void addChildEventListener() {
         childListener = new ChildEventListener() {
             @Override public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
@@ -275,22 +212,55 @@ public class List_screen extends AppCompatActivity implements
         super.onPause();
         locationManager.removeUpdates(this);
         dbRef.removeEventListener(childListener);
+        adapter.clear();
+        dataListView.setOnItemClickListener(null);
+        dataListView.setOnItemLongClickListener(null);
+        listItems.clear();
+        listKeys.clear();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        //adapter.notifyDataSetChanged();
-        adapter.clear();
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_single_choice, listItems);
+        dataListView.setAdapter(adapter);
+        dataListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        dataListView.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                imagekey = listKeys.get(position);
+                selectedPosition = position; itemSelected = true;
+                deleteButton.setEnabled(true);
+            }
+        });
+        dataListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+                if (ContextCompat.checkSelfPermission(List_screen.this,
+                        permissions[0]) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(List_screen.this,
+                        permissions[1]) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(List_screen.this,
+                        permissions[2]) == PackageManager.PERMISSION_GRANTED) {
+                    imagekey = listKeys.get(position);
+                    Intent intent = new Intent(view.getContext(), Images_screen.class);
+                    selectedPosition = 0; itemSelected = false;
+                    startActivity(intent);
+                } else {
+                    ActivityCompat.requestPermissions(List_screen.this, permissions, REQUEST_CODE);
+                }
+                return false;
+            }
+
+        });
         addChildEventListener();
     }
 
-    // find the location
     public void getLocation() {
         locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
         criteria = new Criteria();
         bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
-
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
         if (permission == PackageManager.PERMISSION_GRANTED) {
@@ -301,7 +271,6 @@ public class List_screen extends AppCompatActivity implements
             } else {
                 locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
             }
-
         } else {
             requestPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -309,22 +278,16 @@ public class List_screen extends AppCompatActivity implements
         }
     }
 
-    // manually find the best location provider, auto was not working
     private Location getLastKnownLocation() {
         List<String> providers = locationManager.getProviders(true);
         Location bestLocation = null;
         for (String provider : providers) {
-            // this is not an error and is safe to ignore as far as I, kris, knows
-            // all the documentation states that this function is guaranteed to be non-null
             @SuppressLint("MissingPermission") Location l = locationManager.getLastKnownLocation(provider);
-            Log.d("last loc, p: %s, l: %s", provider + " " + l);
-
             if (l == null) {
                 continue;
             }
             if (bestLocation == null
                     || l.getAccuracy() < bestLocation.getAccuracy()) {
-                Log.d("best last location: %s", " " + l);
                 bestLocation = l;
             }
         }
@@ -334,14 +297,12 @@ public class List_screen extends AppCompatActivity implements
         return bestLocation;
     }
 
-    // request permissions
     protected void requestPermission(String permissionType, int requestCode) {
         ActivityCompat.requestPermissions(this,
                 new String[]{permissionType}, requestCode
         );
     }
 
-    // after the user is done interacting with the activity, handle the results
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -353,7 +314,6 @@ public class List_screen extends AppCompatActivity implements
                             "Unable to show location - permission required",
                             Toast.LENGTH_LONG).show();
                 } else {
-                    // permissions are set, therefore...
                 }
             }
         }
@@ -362,7 +322,6 @@ public class List_screen extends AppCompatActivity implements
     public void editEntry(View view) {
         String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
-
         if (ContextCompat.checkSelfPermission(List_screen.this,
                 permissions[0]) == PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(List_screen.this,
@@ -376,8 +335,8 @@ public class List_screen extends AppCompatActivity implements
                 toast.show();
                 return;
             }
-            Log.i(TAG, imagekey);
             Intent intent = new Intent(view.getContext(), Images_screen.class);
+            selectedPosition = 0; itemSelected = false;
             startActivity(intent);
         } else {
             ActivityCompat.requestPermissions(List_screen.this, permissions, REQUEST_CODE);

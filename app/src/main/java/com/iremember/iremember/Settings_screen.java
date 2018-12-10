@@ -17,9 +17,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class Settings_screen extends AppCompatActivity {
-
     private static String TAG = "Settings_screen";
-
     Switch mswitch;
     String mode = "";
     Boolean b;
@@ -33,16 +31,12 @@ public class Settings_screen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings_screen);
-
         getMode();
-
         Toast toast =
             Toast.makeText(this,"Default is Walking",Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
-
         mswitch = findViewById(R.id.switch1);
-
         mswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked) {
@@ -63,10 +57,8 @@ public class Settings_screen extends AppCompatActivity {
                     assert mode != null;
                     b = (mode.equals("driving"));
                     mswitch.setChecked(b);
-                    Log.i(TAG,"Mode: " + mode + ", Boolean: " + b.toString());
                 }
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });

@@ -36,16 +36,12 @@ import java.util.List;
 
 public class Welcome_screen extends AppCompatActivity implements View.OnClickListener {
 
-    // constants
     private static final String TAG = "Welcome_screen";
     private static int RC_SIGN_IN = 100;
     private static final String TAG1 = "RealtimeDB";
 
-    // firebase auth
     private FirebaseAuth.AuthStateListener AuthListener;
     private FirebaseAuth Auth;
-
-    // firebase database
     FirebaseDatabase db;
     private DatabaseReference dbRef;
     FirebaseUser currentUser;
@@ -53,8 +49,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     String firebase_email;
     String uid;
     public static String mode;
-
-    // UI elements
     TextView email;
     TextView userName;
     TextView welcome;
@@ -65,21 +59,13 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
     Button tracked_items_list;
     FloatingActionButton settings;
     FloatingActionButton userLogout;
-
-    // add support for login here, warning is because we only implement a single sign in method
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
 
-    // really busy initialization, could maybe be broken down into helper functions
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome_screen);
-
-        for (String provider : AuthUI.SUPPORTED_PROVIDERS) {
-            Log.i(this.getClass().getName(), provider);
-        }
-
         login_button = findViewById(R.id.button1);
         logout_button = findViewById(R.id.button2);
         record_location = findViewById(R.id.button3);
@@ -93,8 +79,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         map.setOnClickListener(this);
         tracked_items_list.setOnClickListener(this);
         record_location.setOnClickListener(this);
-
-        // firebase, instantiate Auth and then create a listener to call our updateUI
         Auth = FirebaseAuth.getInstance();
         AuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -102,35 +86,26 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 updateUI();
             }
         };
-
-        Log.i(TAG, "onCreate");
     }
 
-    // button handling
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button3:
-                Log.i("button", "5, record_location");
-
                 break;
             case R.id.button4:
-                Log.i("button", "3, map");
                 Intent intent = new Intent(this, Map_screen.class);
                 startActivity(intent);
                 break;
             case R.id.button5:
-                Log.i("button", "4, tracked_item_list");
                 Intent i = new Intent(this, List_screen.class);
                 startActivity(i);
                 break;
             default:
-                Log.i("button","unknown input");
                 break;
         }
     }
 
-    // update UI helper function, hide auth required items if not logged in
     private void updateUI() {
         FirebaseUser user = Auth.getCurrentUser();
         if(user == null) {
@@ -161,25 +136,18 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    // is the user signed in? update the UI accordingly
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == RC_SIGN_IN) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == RESULT_OK) {
-                Log.i(TAG,"User signed in with " + (response != null ? response.getProviderType() : null));
-
                 currentUser = FirebaseAuth.getInstance().getCurrentUser();
                 if (currentUser != null) {
                     name = currentUser.getDisplayName();
                     firebase_email = currentUser.getEmail();
                     uid = currentUser.getUid();
                 }
-
                 writeUserData(name, firebase_email);
-
                 updateUI();
             } else {
                 updateUI();
@@ -187,7 +155,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    // user sign in for firebaseAuth
     public void signIn(View v) {
         startActivityForResult(
                 AuthUI.getInstance()
@@ -197,20 +164,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 RC_SIGN_IN);
     }
 
-    // user can delete account from the firebase, not implemented in the UI
-    public void deleteAccount(View v) {
-        AuthUI.getInstance()
-                .delete(this)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-
-                }
-        });
-
-    }
-
-    // sign out of firebase auth
     public void signOut(View view) {
         AuthUI.getInstance()
                 .signOut(this)
@@ -222,60 +175,12 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 });
     }
 
-    // lifecycle methods, originally did some bundle stuff here but most of that code got removed
-
-    // Start the firebase authorization listener
     @Override
     protected void onStart() {
         super.onStart();
         Auth.addAuthStateListener(AuthListener);
-
-        Log.i(TAG, "onStart");
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i(TAG, "onResume");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.i(TAG, "onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.i(TAG, "onStop");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.i(TAG, "onRestart");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.i(TAG, "onDestroy");
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.i(TAG, "onSaveInstanceState");
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        Log.i(TAG, "onRestoreInstanceState");
-    }
-
-    // firebase helper function
     public void writeUserData(String name, String firebase_email) {
         db = FirebaseDatabase.getInstance();
         dbRef = db.getReference();
@@ -286,22 +191,17 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
-                        Log.i(TAG1, "user exists");
-                        // User Exists
-                        // Do your stuff here if user already exits
+
                     } else {
-                        Log.i(TAG1, "user created");
                         dbRef.child("users").child(uid).setValue(user);
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Log.w(TAG, "getUser:onCancelled", databaseError.toException());
                 }
             }
         );
-
     }
 
     public void settings(View view) {
@@ -317,7 +217,6 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
 
         public User() {
             // Default constructor required for calls to DataSnapshot.getValue(User.class)
-            Log.i(TAG, "user constructor called");
         }
 
         User(String username, String email) {
@@ -325,6 +224,5 @@ public class Welcome_screen extends AppCompatActivity implements View.OnClickLis
             this.email = email;
             this.setting = "walking";
         }
-
     }
 }
